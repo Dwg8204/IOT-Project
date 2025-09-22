@@ -12,7 +12,8 @@ const dataSensorRoutes = require("./routes/dataSensor.route");
 const actionHistoryRoutes = require("./routes/actionHistory.route");
 app.use("/api/action-history", actionHistoryRoutes);
 app.use("/api/data-sensor", dataSensorRoutes);
-
+const path = require("path");
+app.use(express.static(path.join(__dirname, '../frontend')));
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
