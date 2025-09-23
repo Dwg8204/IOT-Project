@@ -7,7 +7,7 @@ const actionHistorySchema = new mongoose.Schema({
     },
     action: {
         type: String,
-        enum: ["bật", "tắt"],
+        enum: ["ON", "OFF"],
         required: true
     },
     createAt: {
