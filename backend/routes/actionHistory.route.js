@@ -1,14 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const ActionHistory = require('../models/actionHistory.model');
+const controller = require('../controllers/actionHistory.controller');
 
-router.get('/', async (req, res) => {
-    try {
-        const actions = await ActionHistory.find().sort({ createdAt: -1 });
-        res.json(actions);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }   
-});
+router.get('/', controller.index);
 
 module.exports = router;
