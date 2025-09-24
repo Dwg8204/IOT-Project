@@ -2,14 +2,16 @@ const mongoose = require('mongoose');
 const actionHistorySchema = new mongoose.Schema({
     device: {
         type: String,
-        enum: ["đèn", "quạt", "điều hoà"],
+        enum: ["blue", "red", "yellow"],
         required: true
     },
     action: {
         type: String,
-        enum: ["ON", "OFF"],
+        enum: ["on", "off"],
         required: true
     },
+    status: { type: String },   
+    message: { type: String },
     createAt: {
         type: Date,
         default: Date.now

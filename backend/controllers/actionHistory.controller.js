@@ -1,6 +1,9 @@
 const MqttClient  = require('../config/mqtt');
 const actionHistory = require('../models/actionHistory.model');
-
+// const pendingAction = new Map();
+// module.exports.pendingAction = pendingAction;
+const pendingAction = require('../utils/pendingAction');
+module.exports.pendingAction = pendingAction;
 module.exports.index = async (req, res) => {
   try {
       const find ={
@@ -30,14 +33,44 @@ module.exports.index = async (req, res) => {
 module.exports.createAction = async (req, res) => {
   try {
     const {device, action} = req.body;
+    if (!device || !action) {
+      return res.status(400).json({ message: "Thiếu device hoặc action" });
+    }
+    const topic = 'deviceled';
+    const message = `${device}.${action}`;
+    //tạo promise chờ phản hồi từ esp32
+    const responsePromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        pendingAction.delete(message);
+        reject(new Error('Timeout: No response from device'));
+      }, 10000); // 5 giây timeout
+
+      pendingAction.set(message, (response) => {
+        clearTimeout(timeout);
+        pendingAction.delete(message);
+        resolve(response);
+      });
+    });
+    //gửi lệnh qua mqtt
+    MqttClient.publish(topic, message, (err) => { 
+      if (err) {
+        pendingAction.delete(message);
+        return res.status(500).json({ message: 'Lỗi khi gửi lệnh qua MQTT', error: err.message });
+      }
+      console.log(`MQTT pub: ${topic} - ${message}`);
+    });
+    //chờ phản hồi từ esp32
+    const response = await responsePromise;
+    //lưu lịch sử hành động
     const newAction = new actionHistory({
-      device, action
+      device,
+      action,
+      status: response.status,
+      message: response.message,
     });
     await newAction.save();
-    const message = JSON.stringify({device, action});
-    MqttClient.publish('deviced', message);
-    console.log("MQTT pub: ", message);
-    res.status(201).json(newAction);
+    res.status(200).json({ message: 'Hành động đã được thực hiện', action: newAction });
+    
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
