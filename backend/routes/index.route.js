@@ -5,5 +5,5 @@ module.exports = (app) => {
     const version = "/api";
     app.use(version + "/action-history", actionHistoryRoutes);
     app.use(version + "/data-sensor", dataSensorRoutes);
-    app.use(version + "/home", homeRoutes);
+    app.use(version + "/", homeRoutes);
 }

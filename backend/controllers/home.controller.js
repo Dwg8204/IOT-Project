@@ -1,8 +1,8 @@
 const dataSensor = require('../models/dataSensor.model');
-
+const path = require('path');
 module.exports.index = async (req, res) => {
     try {
-        res.send('Welcome to the Home Page');
+        res.sendFile(path.join(__dirname, '../../frontend/index.html'));
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -10,8 +10,8 @@ module.exports.index = async (req, res) => {
 };
 module.exports.getData = async (req, res) => {
     try {
-        const dataSensors = await dataSensor.findOne().sort({ createdAt: -1 });
-        res.json(dataSensors);
+        const data = await dataSensor.findOne().sort({ createdAt: -1 });
+        res.json(data);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
