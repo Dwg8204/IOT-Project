@@ -18,7 +18,7 @@ module.exports.index = async (req, res) => {
     if (req.query.sortKey && req.query.sortValue) {
         sort[req.query.sortKey] = req.query.sortValue;
       }
-    const dataSensors = await dataSensor.find(find);
+    const dataSensors = await dataSensor.find(find).sort({createdAt: -1});
     res.json(dataSensors);
     console.log("dataSensors", dataSensors);
     } catch (error) {

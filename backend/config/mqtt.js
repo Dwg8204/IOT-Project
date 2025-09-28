@@ -5,6 +5,7 @@ const username = process.env.MQTT_USERNAME ;
 const password = process.env.MQTT_PASSWORD ;
 const options = {};
 const pendingAction = require('../utils/pendingAction');
+const dataSensor = require('../models/dataSensor.model');
 
 if (username && password) {
   options.username = username;
@@ -74,7 +75,27 @@ client.on('message', (topic, message) => {
 
   if (topic === 'datasensor') {
     console.log(`[MQTT] datasensor <= ${text}`);
+    try {
+      const data = JSON.parse(text);
+      if (data && data.temperature !== undefined && data.humidity !== undefined) {
+        // Lưu vào DB
+        const doc = new dataSensor({
+          temperature: data.temperature,
+          humidity: data.humidity,
+          light: data.light
+        });
+        doc.save();
+      }
+      else {
+        console.log("Lỗi lưu database: ");
+      }
+    }
+    catch (e){
+      console.log("Lỗi ");
+    }
     return;
+
+    
   }
 
   console.log(`[MQTT] ${topic} <= ${text}`);
