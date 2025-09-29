@@ -141,8 +141,8 @@
             <input class="form-check-input" type="checkbox" id="fanSwitch">
           </div>
           <div class="form-switch">
-            <label class="form-check-label me-2">💻 Màn hình</label>
-            <input class="form-check-input" type="checkbox" id="screenSwitch">
+            <label class="form-check-label me-2">💻 Điều hoà</label>
+            <input class="form-check-input" type="checkbox" id="acSwitch">
           </div>
         </div>
       </div>
@@ -256,7 +256,43 @@
       arr.forEach(item => pushPoint(item));
     } catch(e){ console.warn(e); }
   }
+  async function sendAction(device, actionStr) {
+    try {
+      const res = await fetch('http://localhost:3000/api/action-history/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device, action:actionStr })
+      });
+      const data = await res.json();
+      console.log('Action response:', data);
+      if (!res.ok) {
+        const err = await res.json();
+        alert('Lỗi khi gửi lệnh: ' + (err.message || res.statusText));
+        return false;
+      }
+      console.log("ACK ok from server:", data);
+      return true;
+    } catch(e){ console.warn(e); }
 
+    
+  }
+
+  function bindToggle(id, device) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', async () => {
+      const desired = el.checked;
+      console.log(`Sending ${desired} to ${device}`);
+      const actionStr = desired ? 'on' : 'off';
+      el.disabled = true;
+      const success = await sendAction(device, actionStr);
+      if (!success) el.checked = !desired;
+      el.disabled = false;
+    });
+  }
+  bindToggle('ledSwitch', 'light');
+  bindToggle('fanSwitch', 'fan');
+  bindToggle('acSwitch', 'air');
   async function loadLatest() {
     try {
       const res = await fetch('http://localhost:3000/api/data');

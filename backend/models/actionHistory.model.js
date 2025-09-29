@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const actionHistorySchema = new mongoose.Schema({
     device: {
         type: String,
-        enum: ["blue", "red", "yellow"],
+        enum: ["fan", "air", "light"],
         required: true
     },
     action: {

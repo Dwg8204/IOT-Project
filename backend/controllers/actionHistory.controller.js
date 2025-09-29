@@ -43,7 +43,7 @@ module.exports.createAction = async (req, res) => {
       const timeout = setTimeout(() => {
         pendingAction.delete(message);
         reject(new Error('Timeout: No response from device'));
-      }, 10000); // 5 giây timeout
+      }, 10000); // 10 giây timeout
 
       pendingAction.set(message, (response) => {
         clearTimeout(timeout);
@@ -61,6 +61,11 @@ module.exports.createAction = async (req, res) => {
     });
     //chờ phản hồi từ esp32
     const response = await responsePromise;
+    console.log('Response from device:', response);
+    if (!response || response.status !== 'ok') {
+      return res.status(500).json({ message: 'Device phản hồi lỗi hoặc không hợp lệ', response });
+    }
+    else {
     //lưu lịch sử hành động
     const newAction = new actionHistory({
       device,
@@ -70,7 +75,7 @@ module.exports.createAction = async (req, res) => {
     });
     await newAction.save();
     res.status(200).json({ message: 'Hành động đã được thực hiện', action: newAction });
-    
+  }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

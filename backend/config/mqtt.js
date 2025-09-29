@@ -39,6 +39,7 @@ client.on('message', (topic, message) => {
 
     let key;
     let status = 'ok';
+    let isAck = false;
     const msg = text;
 
     // Thử parse JSON: {"device":"blue","action":"on","status":"ok"}
@@ -47,19 +48,21 @@ client.on('message', (topic, message) => {
       if (obj && obj.device && obj.action) {
         key = `${obj.device}.${obj.action}`;
         status = obj.status || 'ok';
+        isAck = true;
       }
     } catch (_) { /* không phải JSON */ }
 
     // Fallback dạng chuỗi: "device.action" hoặc "device.action.ok"
-    if (!key) {
+    if (!isAck) {
       const parts = text.split('.');
-      if (parts.length >= 2) {
+      if (parts.length === 3) {
         key = `${parts[0]}.${parts[1]}`;
-        if (parts[2]) status = parts[2];
+        status = parts[2];
+        isAck = true;
       }
     }
 
-    if (!key) {
+    if (!key || !isAck) {
       console.warn('ACK không hợp lệ, bỏ qua:', text);
       return;
     }
