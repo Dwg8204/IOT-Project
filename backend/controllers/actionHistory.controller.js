@@ -1,14 +1,35 @@
 const MqttClient  = require('../config/mqtt');
 const actionHistory = require('../models/actionHistory.model');
+const deviceStateCache = require('../services/deviceStateCache');
 // const pendingAction = new Map();
 // module.exports.pendingAction = pendingAction;
 const pendingAction = require('../utils/pendingAction');
 module.exports.pendingAction = pendingAction;
+
+// Khởi tạo cache từ DB khi server start
+(async () => {
+  try {
+    const agg = await actionHistory.aggregate([
+      { $match: { status: 'ok' } },
+      { $sort: { createAt: -1 } },
+      { $group: { _id: '$device', action: { $first: '$action' } } }
+    ]);
+    const states = {};
+    agg.forEach(item => {
+      states[item._id] = item.action;
+    });
+    deviceStateCache.initializeFromDB(states);
+    console.log('Khởi tạo device states từ DB:', states);
+  } catch (e) {
+    console.warn('Lỗi khởi tạo device states:', e);
+  }
+})();
+
 module.exports.index = async (req, res) => {
   try {
       const find ={
       };
-      console.log(req.query);
+      // console.log(req.query);
       if (req.query.status) {
         find.status = req.query.status;
       }
@@ -24,7 +45,7 @@ module.exports.index = async (req, res) => {
       }
     const actionHistorys = await actionHistory.find(find);
     res.json(actionHistorys);
-    console.log("actionHistorys", actionHistorys);
+    // console.log("actionHistorys", actionHistorys);
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
@@ -43,7 +64,7 @@ module.exports.createAction = async (req, res) => {
       const timeout = setTimeout(() => {
         pendingAction.delete(message);
         reject(new Error('Timeout: No response from device'));
-      }, 10000); // 10 giây timeout
+      }, 2000); // 2 giây timeout
 
       pendingAction.set(message, (response) => {
         clearTimeout(timeout);
@@ -108,4 +129,44 @@ module.exports.testMqtt = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 
+};
+// API trả về trạng thái hiện tại của thiết bị
+module.exports.getDeviceStates = async (req, res) => {
+  try {
+    const states = deviceStateCache.getAllStates();
+    // Chuyển đổi sang boolean cho frontend
+    const result = {
+      light: states.light === 'on',
+      fan: states.fan === 'on', 
+      air: states.air === 'on'
+    };
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports.state = async (req, res) => {
+  try {
+    const agg = await actionHistory.aggregate([
+      {
+        $match: { status: 'ok' }
+      },
+      {
+        $group: {
+          _id: '$device',
+          action: { $first: '$action' },
+        } 
+      },
+      {
+        $sort: { count: -1 }
+      }
+    ]);
+    const result = {};
+    agg.forEach(item => {
+      result[item._id] = item.action;
+    });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

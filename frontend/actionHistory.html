@@ -43,12 +43,14 @@
                 row.innerHTML = `
                     <td>${data.device}</td>
                     <td>${data.action}</td>
-                    <td>${new Date(data.createdAt).toLocaleString()}</td>
+                    <td>${new Date(data.createAt).toLocaleString()}</td>
                 `;
                 tbody.appendChild(row);
             });
         }
         loadData();
+        setInterval(loadData, 2000); 
+
     </script>
 </body>
 </html>

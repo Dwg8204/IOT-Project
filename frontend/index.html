@@ -6,92 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: "Arial", sans-serif;
-      background: #fff;
-    }
-    .sidebar {
-      width: 220px;
-      background: #f8f9fa;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      border-right: 1px solid #ddd;
-      padding-top: 20px;
-    }
-    .sidebar h4 {
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .nav-link {
-      font-weight: 500;
-      padding: 12px 20px;
-      color: #333;
-    }
-    .nav-link.active {
-      background: #8c52ff;
-      color: #fff !important;
-      border-radius: 10px;
-    }
-    .main {
-      margin-left: 230px;
-      padding: 20px;
-    }
-    .sensor-card {
-      border-radius: 20px;
-      padding: 20px;
-      color: #333;
-      text-align: center;
-      font-weight: bold;
-    }
-    .device-card {
-      border-radius: 20px;
-      padding: 20px;
-      background: #f1f1f1;
-    }
-    /* Custom switch (pill style) */
-    .form-switch .form-check-input {
-      width: 3rem;
-      height: 1.5rem;
-      background-color: #ccc;
-      border-radius: 1.5rem;
-      position: relative;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    .form-switch .form-check-input:checked {
-      background-color: #8c52ff;
-    }
-    .form-switch .form-check-input::before {
-      content: "";
-      position: absolute;
-      width: 1.1rem;
-      height: 1.1rem;
-      border-radius: 50%;
-      background: #fff;
-      top: 0.2rem;
-      left: 0.2rem;
-      transition: 0.3s;
-    }
-    .form-switch .form-check-input:checked::before {
-      transform: translateX(1.5rem);
-    }
-  </style>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="../frontend/css/home.css">
 </head>
 <body>
   <!-- Sidebar -->
   <div class="sidebar d-flex flex-column">
-    <h4>DWG LAPTOP</h4>
+    <h4 class="logo">DWG LAPTOP</h4>
     <ul class="nav flex-column">
-      <li class="nav-item"><a href="#" class="nav-link active">🏠 Home</a></li>
-      <li class="nav-item"><a href="#" class="nav-link">📊 Data sensor</a></li>
-      <li class="nav-item"><a href="#" class="nav-link">📝 Action history</a></li>
-      <li class="nav-item"><a href="#" class="nav-link">👤 Profile</a></li>
+      <li class="nav-item"><a href="index.html" class="nav-link active"><i class="bi bi-house-door-fill"></i> Home</a></li>
+      <li class="nav-item"><a href="dataSensor.html" class="nav-link"><i class="bi bi-graph-up"></i> Data sensor</a></li>
+      <li class="nav-item"><a href="actionHistory.html" class="nav-link"><i class="bi bi-clock-history"></i> Action history</a></li>
+      <li class="nav-item"><a href="profile.html" class="nav-link"><i class="bi bi-person-circle"></i> Profile</a></li>
     </ul>
   </div>
 
@@ -102,21 +32,21 @@
     <!-- Sensor Cards -->
     <div class="row g-4">
       <div class="col-md-4">
-        <div class="sensor-card bg-danger bg-opacity-25">
+        <div class="sensor-card card-red">
           <h6>Nhiệt độ</h6>
-          <div style="font-size:22px;">🌡️ <span id="tempVal"></span></div>
+          <div class="sensor-value"><i class="bi bi-thermometer-half"></i> <span id="tempVal"></span> °C</div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="sensor-card bg-primary bg-opacity-25">
+        <div class="sensor-card card-blue">
           <h6>Độ ẩm</h6>
-          <div style="font-size:22px;">💧 <span id="humVal"></span></div>
+          <div class="sensor-value"><i class="bi bi-droplet-half"></i> <span id="humVal"></span> %</div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="sensor-card bg-warning bg-opacity-25">
+        <div class="sensor-card card-yellow">
           <h6>Ánh sáng</h6>
-          <div style="font-size:22px;">☀️ <span id="lightVal"></span></div>
+          <div class="sensor-value"><i class="bi bi-brightness-high"></i> <span id="lightVal"></span> LUX</div>
         </div>
       </div>
     </div>
@@ -124,194 +54,38 @@
     <!-- Chart + Devices -->
     <div class="row mt-4">
       <div class="col-md-9">
-        <div class="card p-3" style="height: 400px;">
+        <div class="card p-3 chart-card" style="height: 450px;">
           <h5 class="fw-bold">Biểu đồ</h5>
           <canvas id="sensorChart"></canvas>
         </div>
       </div>
       <div class="col-md-3">
-        <div class="device-card">
-          <h5 class="fw-bold mb-3">Thiết bị</h5>
-          <div class="form-switch mb-3">
-            <label class="form-check-label me-2">💡 Đèn</label>
-            <input class="form-check-input" type="checkbox" id="ledSwitch">
-          </div>
-          <div class="form-switch mb-3">
-            <label class="form-check-label me-2">🌀 Quạt</label>
-            <input class="form-check-input" type="checkbox" id="fanSwitch">
-          </div>
-          <div class="form-switch">
-            <label class="form-check-label me-2">💻 Điều hoà</label>
-            <input class="form-check-input" type="checkbox" id="acSwitch">
-          </div>
+<div class="device-card">
+  <h5 class="fw-bold mb-3">Thiết bị</h5>
+
+  <div class="device-switch">
+  <label for="ledSwitch"><i class="bi bi-lightbulb"></i> Đèn</label>
+    <input type="checkbox" id="ledSwitch" class="toggle-pill">
+  </div>
+
+  <div class="device-switch">
+  <label for="fanSwitch"><i class="bi bi-fan"></i> Quạt</label>
+    <input type="checkbox" id="fanSwitch" class="toggle-pill">
+  </div>
+
+  <div class="device-switch">
+  <label for="acSwitch"><i class="bi bi-tv"></i> Điều hoà</label>
+    <input type="checkbox" id="acSwitch" class="toggle-pill">
+  </div>
+
+  
+</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Chart.js Script -->
-<script>
-  const ctx = document.getElementById('sensorChart').getContext('2d');
-  const labels = [];
-  const tempData = [];
-  const humData = [];
-  const lightData = [];
-
-  function pushPoint(d) {
-    if (!d) return;
-    const t = d.createdAt || d.createAt || new Date().toISOString();
-    const label = new Date(t).toLocaleTimeString();
-    labels.push(label);
-    tempData.push(typeof d.temperature === 'number' ? d.temperature : null);
-    humData.push(typeof d.humidity === 'number' ? d.humidity : null);
-    lightData.push(typeof d.light === 'number' ? d.light : null);
-    if (labels.length > 50) {
-      labels.shift(); tempData.shift(); humData.shift(); lightData.shift();
-    }
-    chart.update();
-  }
-
-  const chart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: 'Nhiệt độ (°C)',
-            data: tempData,
-            borderColor: '#e63737',
-            backgroundColor: '#e63737',
-            tension: .35,
-            yAxisID: 'temp',
-            pointRadius: 2
-        },
-        {
-          label: 'Độ ẩm (%)',
-            data: humData,
-            borderColor: '#1d6ce0',
-            backgroundColor: '#1d6ce0',
-            tension: .35,
-            yAxisID: 'hum',
-            pointRadius: 2
-        },
-        {
-          label: 'Ánh sáng (LUX)',
-            data: lightData,
-            borderColor: '#f5a623',
-            backgroundColor: '#f5a623',
-            tension: .35,
-            yAxisID: 'light',
-            pointRadius: 2
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      maintainAspectRatio: false,
-      scales: {
-        temp: {
-          type: 'linear',
-          position: 'left',
-          title: { display: true, text: '°C' },
-          suggestedMin: 0,
-          suggestedMax: 50
-        },
-        hum: {
-          type: 'linear',
-          position: 'left',
-          grid: { drawOnChartArea: false },
-          title: { display: true, text: '%RH' },
-          suggestedMin: 0,
-          suggestedMax: 100
-        },
-        light: {
-          type: 'linear',
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          title: { display: true, text: 'LUX' }
-        }
-      },
-      plugins: {
-        legend: { position: 'top' }
-      }
-    }
-  });
-
-
-  function updateCards(d) {
-    if (!d) return;
-    document.getElementById('tempVal').textContent = (d.temperature ?? '--');
-    document.getElementById('humVal').textContent = (d.humidity ?? '--');
-    document.getElementById('lightVal').textContent = (d.light ?? '--');
-  }
-
- 
-  async function loadChartOnce() {
-    try {
-      const res = await fetch('http://localhost:3000/api/chart');
-      if (!res.ok) return;
-      const arr = await res.json();
-      labels.length = tempData.length = humData.length = lightData.length = 0;
-      arr.forEach(item => pushPoint(item));
-    } catch(e){ console.warn(e); }
-  }
-  async function sendAction(device, actionStr) {
-    try {
-      const res = await fetch('http://localhost:3000/api/action-history/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ device, action:actionStr })
-      });
-      const data = await res.json();
-      console.log('Action response:', data);
-      if (!res.ok) {
-        const err = await res.json();
-        alert('Lỗi khi gửi lệnh: ' + (err.message || res.statusText));
-        return false;
-      }
-      console.log("ACK ok from server:", data);
-      return true;
-    } catch(e){ console.warn(e); }
-
-    
-  }
-
-  function bindToggle(id, device) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('change', async () => {
-      const desired = el.checked;
-      console.log(`Sending ${desired} to ${device}`);
-      const actionStr = desired ? 'on' : 'off';
-      el.disabled = true;
-      const success = await sendAction(device, actionStr);
-      if (!success) el.checked = !desired;
-      el.disabled = false;
-    });
-  }
-  bindToggle('ledSwitch', 'light');
-  bindToggle('fanSwitch', 'fan');
-  bindToggle('acSwitch', 'air');
-  async function loadLatest() {
-    try {
-      const res = await fetch('http://localhost:3000/api/data');
-      if (!res.ok) return;
-      const latest = await res.json();
-      if (latest && latest.temperature !== undefined) {
-        updateCards(latest);
-        if (tempData.length === 0 ||
-            latest.temperature !== tempData[tempData.length-1] ||
-            latest.humidity !== humData[humData.length-1] ||
-            latest.light !== lightData[lightData.length-1]) {
-          pushPoint(latest);
-        }
-      }
-    } catch(e){ console.warn(e); }
-  }
-
-  loadChartOnce().then(loadLatest);
-  setInterval(loadLatest, 5000);
-</script>
+  <!-- Custom JS -->
+  <script src="../frontend/js/home.js"></script>
 </body>
 </html>

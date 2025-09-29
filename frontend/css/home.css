@@ -1,0 +1,163 @@
+body {
+  font-family: "Arial", sans-serif;
+  background: #fff;
+}
+
+.sidebar {
+  width: 220px;
+  background: #f8f9fa;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-right: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.sidebar .logo {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  padding: 12px 20px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar .nav-link.active {
+  background: #8c52ff;
+  color: #fff !important;
+  border-radius: 10px;
+}
+
+.main {
+  margin-left: 230px;
+  padding: 20px;
+}
+
+.sensor-card {
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+}
+
+.sensor-card h6 {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.sensor-value {
+  font-size: 22px;
+}
+
+.card-red { background: #ff000020; }
+.card-blue { background: #1d6ce020; }
+.card-yellow { background: #f5a62320; }
+
+.device-card {
+  border-radius: 20px;
+  padding: 20px;
+  background: #f1f1f1;
+}
+
+.device-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.device-switch label {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==== Toggle pill style ==== */
+.toggle-pill {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 50px;
+  height: 26px;
+  background: #ccc;
+  border-radius: 50px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.3s ease;
+}
+
+.toggle-pill::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s ease;
+}
+
+.toggle-pill:checked {
+  background: #8c52ff; /* màu tím giống sidebar */
+}
+
+.toggle-pill:checked::before {
+  transform: translateX(24px);
+}
+
+
+
+/* Đèn - hiệu ứng sáng vàng */
+#ledSwitch:checked ~ label i,
+label:has(~ #ledSwitch:checked) i {
+  color: #fdd835 !important;
+  text-shadow: 0 0 10px #fdd835, 0 0 20px #ffeb3b;
+}
+#ledSwitch:not(:checked) ~ label i,
+label:has(~ #ledSwitch:not(:checked)) i {
+  color: #777;
+  text-shadow: none;
+}
+
+/* Quạt - hiệu ứng xoay */ 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+#fanSwitch:checked ~ label i,
+label:has(~ #fanSwitch:checked) i {
+  color: #2196f3 !important;
+  animation: spin 1.2s linear infinite;
+}
+#fanSwitch:not(:checked) ~ label i,
+label:has(~ #fanSwitch:not(:checked)) i {
+  color: #777;
+  animation: none;
+}
+
+/* Điều hòa - hiệu ứng sóng */
+@keyframes wave {
+  0% { text-shadow: 0 0 5px #80d8ff; }
+  50% { text-shadow: 0 0 15px #40c4ff; }
+  100% { text-shadow: 0 0 5px #80d8ff; }
+}
+#acSwitch:checked ~ label i,
+label:has(~ #acSwitch:checked) i {
+  color: #00bcd4 !important;
+  animation: wave 2s ease-in-out infinite;
+}
+#acSwitch:not(:checked) ~ label i,
+label:has(~ #acSwitch:not(:checked)) i {
+  color: #777;
+  animation: none;
+}

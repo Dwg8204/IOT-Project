@@ -6,6 +6,7 @@ const password = process.env.MQTT_PASSWORD ;
 const options = {};
 const pendingAction = require('../utils/pendingAction');
 const dataSensor = require('../models/dataSensor.model');
+const deviceStateCache = require('../services/deviceStateCache');
 
 if (username && password) {
   options.username = username;
@@ -33,7 +34,7 @@ client.on('connect', () => {
 });
 client.on('message', (topic, message) => {
   const text = message.toString();
-
+  
   if (topic === 'deviceled') {
     console.log(`[MQTT] deviceled <= ${text}`);
 
@@ -41,11 +42,14 @@ client.on('message', (topic, message) => {
     let status = 'ok';
     let isAck = false;
     const msg = text;
+    let device, action;
 
     // Thử parse JSON: {"device":"blue","action":"on","status":"ok"}
     try {
       const obj = JSON.parse(text);
       if (obj && obj.device && obj.action) {
+        device = obj.device;
+        action = obj.action;
         key = `${obj.device}.${obj.action}`;
         status = obj.status || 'ok';
         isAck = true;
@@ -56,6 +60,8 @@ client.on('message', (topic, message) => {
     if (!isAck) {
       const parts = text.split('.');
       if (parts.length === 3) {
+        device = parts[0];
+        action = parts[1];
         key = `${parts[0]}.${parts[1]}`;
         status = parts[2];
         isAck = true;
@@ -65,6 +71,10 @@ client.on('message', (topic, message) => {
     if (!key || !isAck) {
       console.warn('ACK không hợp lệ, bỏ qua:', text);
       return;
+    }
+// CẬP NHẬT CACHE KHI NHẬN ACK THÀNH CÔNG
+    if (status === 'ok' && device && action) {
+      deviceStateCache.updateState(device, action);
     }
 
     const cb = pendingAction.get(key);
