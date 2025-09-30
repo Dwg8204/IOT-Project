@@ -1,56 +1,357 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Action history</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Action History</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff;
+    }
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background: #f5f5f5;
+      padding: 20px 10px;
+      position: fixed;
+    }
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      margin: 6px 0;
+      border-radius: 10px;
+      padding: 10px 15px;
+      color: #333;
+      text-decoration: none;
+    }
+    .sidebar .nav-link.active {
+      background: #8c52ff;
+      color: #fff;
+    }
+    .content {
+      margin-left: 260px;
+      padding: 20px;
+    }
+    h2 {
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .filter-box {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .table th {
+      background: #e5e5e5;
+      text-align: center;
+    }
+    .table td {
+      text-align: center;
+    }
+    .pagination .page-link {
+      margin: 0 3px;
+      border-radius: 8px;
+    }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .loading {
+      text-align: center;
+      padding: 20px;
+    }
+    .pagination-info {
+      text-align: center;
+      margin-top: 15px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a href="index.html" class="navbar-brand">IoT Dashboard</a>
-            <div>
-                <a href="dataSensor.html" class="nav-link d-inline text-light">Data Sensor</a>
-                <a href="actionHistory.html" class="nav-link d-inline text-light">Action History</a>
-                <a href="profile.html" class="nav-link d-inline text-light">Profile</a>
-            </div>
-
-        </div>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h5 class="fw-bold mb-4">DWG LAPTOP</h5>
+    <nav class="nav flex-column">
+      <a class="nav-link" href="index.html">Home</a>
+      <a class="nav-link" href="dataSensor.html">Data sensor</a>
+      <a class="nav-link active" href="actionHistory.html">Action history</a>
+      <a class="nav-link" href="profile.html">Profile</a>
     </nav>
-    <div class="container">
-        <h1 class="mb-4">Action History</h1>
-        <table class="table table-bordered" id="actionTable">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Thiết bị</th>
-                    <th scope="col">Trạng thái</th>
-                    <th scope="col">Thời gian</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-    <script>
-        async function loadData() {
-            let response = await fetch('http://localhost:3000/api/action-history');
-            let actionData = await response.json();
-            let tbody = document.querySelector('#actionTable tbody');
-            tbody.innerHTML = '';
-            actionData.forEach(data => {
-                console.log(data.device);
-                let row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${data.device}</td>
-                    <td>${data.action}</td>
-                    <td>${new Date(data.createAt).toLocaleString()}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-        loadData();
-        setInterval(loadData, 2000); 
+  </div>
 
-    </script>
+  <!-- Content -->
+  <div class="content">
+    <h2 class="mb-4">ACTION HISTORY</h2>
+
+    <!-- Filter -->
+    <div class="filter-box">
+      <input type="text" id="searchKeyword" class="form-control" placeholder="Tìm kiếm..." style="min-width:200px;">
+      <button class="btn btn-primary" onclick="fetchData(1)">Tìm</button>
+
+      <select id="deviceFilter" class="form-select" style="max-width:150px;">
+        <option value="">Thiết bị</option>
+        <option value="light">Đèn</option>
+        <option value="fan">Quạt</option>
+        <option value="air">Điều hòa</option>
+      </select>
+
+      <select id="sortOrder" class="form-select" style="max-width:150px;">
+        <option value="-1">Thứ tự ↓</option>
+        <option value="1">Thứ tự ↑</option>
+      </select>
+
+      <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading" style="display: none;">
+      <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tên thiết bị</th>
+            <th>Hành động</th>
+            <th>Trạng thái</th>
+            <th>Thời gian</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable">
+          <!-- Data render -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- No data -->
+    <div id="noData" class="no-data" style="display:none;">
+      <p>Không có dữ liệu</p>
+    </div>
+
+    <!-- Pagination -->
+    <nav>
+      <ul class="pagination justify-content-center" id="pagination">
+        <!-- Render here -->
+      </ul>
+    </nav>
+
+    <!-- Pagination Info -->
+    <div id="paginationInfo" class="pagination-info"></div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+
+    const deviceNames = {
+      'light': 'Đèn',
+      'fan': 'Quạt',
+      'air': 'Điều hòa'
+    };
+
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    async function fetchData(page = 1) {
+      currentPage = page;
+      showLoading(true);
+
+      const keyword = document.getElementById("searchKeyword").value.trim();
+      const device = document.getElementById("deviceFilter").value;
+      const sortOrder = document.getElementById("sortOrder").value;
+
+      const params = new URLSearchParams();
+      params.append("page", page);
+      params.append("limit", 5);
+      
+      if (keyword) params.append("keyword", keyword);
+      if (device) params.append("device", device);
+      
+      if (sortOrder) {
+        params.append("sortKey", "createAt");
+        params.append("sortValue", sortOrder);
+      }
+
+      const url = `http://localhost:3000/api/action-history?${params.toString()}`;
+      console.log("Fetch URL:", url);
+
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const result = await res.json();
+        console.log("API Response:", result);
+
+        if (result.data && result.pagination) {
+          renderTable(result.data);
+          renderPagination(result.pagination);
+        } else if (Array.isArray(result)) {
+          renderTable(result);
+          renderPagination({
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: result.length,
+            limitItem: result.length
+          });
+        } else {
+          console.warn("Unknown response format:", result);
+          renderTable([]);
+        }
+
+      } catch (err) {
+        console.error("Fetch error:", err);
+        alert("Lỗi khi tải dữ liệu: " + err.message);
+        renderTable([]);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById("historyTable");
+      const noDataDiv = document.getElementById("noData");
+      tbody.innerHTML = "";
+
+      if (!data || !data.length) {
+        noDataDiv.style.display = "block";
+        document.querySelector(".table-responsive").style.display = "none";
+        return;
+      }
+      
+      noDataDiv.style.display = "none";
+      document.querySelector(".table-responsive").style.display = "block";
+
+      data.forEach((row, idx) => {
+        const tr = document.createElement("tr");
+
+        const deviceName = deviceNames[row.device] || row.device;
+        const actionText = row.action === "on" ? "Bật" : "Tắt";
+        const timeStr = row.createAt || row.createdAt;
+        
+        // Format thời gian đơn giản
+        let timeFormatted = "--";
+        if (timeStr) {
+          const date = new Date(timeStr);
+          timeFormatted = date.toLocaleString("vi-VN");
+        }
+        
+        // Status badge
+        let statusBadge = '';
+        if (row.status === 'ok') {
+          statusBadge = '<span class="badge bg-success">OK</span>';
+        } else if (row.status === 'error') {
+          statusBadge = '<span class="badge bg-danger">Error</span>';
+        } else {
+          statusBadge = `<span class="badge bg-secondary">${row.status || 'N/A'}</span>`;
+        }
+
+        tr.innerHTML = `
+          <td>${(currentPage - 1) * 5 + idx + 1}</td>
+          <td>${deviceName}</td>
+          <td><span class="${row.action === 'on' ? 'text-success' : 'text-danger'}">${actionText}</span></td>
+          <td>${statusBadge}</td>
+          <td>${timeFormatted}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderPagination(paginationData) {
+      currentPage = paginationData.currentPage || 1;
+      totalPages = paginationData.totalPages || paginationData.totalPage || 1;
+      const totalItems = paginationData.totalItems || 0;
+      const limitItem = paginationData.limitItem || 5;
+
+      const pagination = document.getElementById("pagination");
+      const paginationInfo = document.getElementById("paginationInfo");
+      
+      pagination.innerHTML = "";
+
+      paginationInfo.innerHTML = `
+        Trang ${currentPage} / ${totalPages} | 
+        Hiển thị ${Math.min(limitItem, totalItems)} / ${totalItems} bản ghi
+      `;
+
+      if (totalPages <= 1) {
+        return;
+      }
+
+      // First
+      pagination.innerHTML += `
+        <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+          <a class="page-link" href="#" onclick="fetchData(1)">First</a>
+        </li>
+      `;
+
+      // Previous
+      pagination.innerHTML += `
+        <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+          <a class="page-link" href="#" onclick="fetchData(${currentPage - 1})">Previous</a>
+        </li>
+      `;
+
+      // Page numbers
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, currentPage + 2);
+
+      for (let i = startPage; i <= endPage; i++) {
+        pagination.innerHTML += `
+          <li class="page-item ${i === currentPage ? "active" : ""}">
+            <a class="page-link" href="#" onclick="fetchData(${i})">${i}</a>
+          </li>
+        `;
+      }
+
+      // Next
+      pagination.innerHTML += `
+        <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+          <a class="page-link" href="#" onclick="fetchData(${currentPage + 1})">Next</a>
+        </li>
+      `;
+
+      // Last
+      pagination.innerHTML += `
+        <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+          <a class="page-link" href="#" onclick="fetchData(${totalPages})">Last</a>
+        </li>
+      `;
+    }
+
+    function resetFilters() {
+      document.getElementById("searchKeyword").value = "";
+      document.getElementById("deviceFilter").value = "";
+      document.getElementById("sortOrder").value = "-1";
+      fetchData(1);
+    }
+
+    // Event listeners
+    document.getElementById("searchKeyword").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        fetchData(1);
+      }
+    });
+
+    // Load data khi trang load
+    document.addEventListener("DOMContentLoaded", function() {
+      fetchData(1);
+    });
+  </script>
 </body>
 </html>

@@ -1,6 +1,8 @@
 const MqttClient  = require('../config/mqtt');
 const actionHistory = require('../models/actionHistory.model');
 const deviceStateCache = require('../services/deviceStateCache');
+const paginationHelper = require('../helpers/pagination');
+const searchHelper = require('../helpers/search');
 // const pendingAction = new Map();
 // module.exports.pendingAction = pendingAction;
 const pendingAction = require('../utils/pendingAction');
@@ -29,22 +31,76 @@ module.exports.index = async (req, res) => {
   try {
       const find ={
       };
+
       // console.log(req.query);
       if (req.query.status) {
         find.status = req.query.status;
       }
-    
+      if (req.query.device) {
+        find.device = req.query.device;
+      }
+      if (req.query.action) {
+        find.action = req.query.action;
+      }
+      // if (req.query.time){
+      //   const timeInput = req.query.time.trim();
+      //   const searchTime = new Date(req.query.time);
+      //   const nextMinute = new Date(searchTime.getTime() + 60000);
+      //   find.createAt = { $gte: searchTime, $lt: nextMinute };
+      // }
+      const search = searchHelper(req.query);
+      const keyword = search.keyword;
+      // if (keyword) {
+      //   find.$or = [
+      //     { device: search.regex },
+      //     { action: search.regex },
+      //     { status: search.regex },
+      //     { message: search.regex }
+      //   ];
+      // }
+      if (keyword) {
+        // Nếu có timeSearch (phát hiện format thời gian), ưu tiên tìm theo thời gian
+        if (search.timeSearch) {
+          console.log('Time search detected:', search.timeSearch);
+          find.createAt = search.timeSearch;
+        } else {
+          // Tìm kiếm text thông thường
+          find.$or = [
+            { device: search.regex },
+            { action: search.regex },
+            { status: search.regex },
+            { message: search.regex }
+          ];
+        }
+      }
+    let initPagination = {
+        currentPage: 1,
+        limitItem: 5
+    };
+    const countRecords = await actionHistory.countDocuments(find);
+    const objectPagination = paginationHelper(initPagination, req.query, countRecords);
     
     
     // const countdataSensor = await dataSensor.countDocuments(find);
     // const objectPagination = paginationHelper(initPagination, req.query, countdataSensor);
     const sort = {
+      createAt: -1
     };
     if (req.query.sortKey && req.query.sortValue) {
-        sort[req.query.sortKey] = req.query.sortValue;
+        sort[req.query.sortKey] = parseInt(req.query.sortValue);
       }
-    const actionHistorys = await actionHistory.find(find);
-    res.json(actionHistorys);
+    const actionHistorys = await actionHistory.find(find).sort(sort).limit(objectPagination.limitItem).skip(objectPagination.skip);
+    res.json(
+      {
+        data: actionHistorys,
+        pagination: {
+          totalItems: countRecords,
+          currentPage: objectPagination.currentPage,
+          totalPages: objectPagination.totalPage,
+          limitItem: objectPagination.limitItem
+        }
+      }
+    );
     // console.log("actionHistorys", actionHistorys);
     } catch (error) {
       res.status(500).json({ message: error.message });
