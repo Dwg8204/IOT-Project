@@ -1,67 +1,122 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Sensor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="../frontend/css/style.css">
+    <link rel="stylesheet" href="../frontend/css/dataSensor.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container">
-            <a href="index.html" class="navbar-brand">IoT Dashboard</a>
-            <div>
-                <a href="dataSensor.html" class="nav-link d-inline text-light">Data Sensor</a>
-                <a href="actionHistory.html" class="nav-link d-inline text-light">Action History</a>
-                <a href="profile.html" class="nav-link d-inline text-light">Profile</a>
+    <!-- Sidebar -->
+    <div class="sidebar d-flex flex-column">
+        <h4 class="logo">DWG</h4>
+        <ul class="nav flex-column">
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-house-door-fill"></i> Home</a></li>
+            <li class="nav-item"><a href="dataSensor.html" class="nav-link active"><i class="bi bi-graph-up"></i> Data sensor</a></li>
+            <li class="nav-item"><a href="actionHistory.html" class="nav-link"><i class="bi bi-clock-history"></i> Action history</a></li>
+            <li class="nav-item"><a href="profile.html" class="nav-link"><i class="bi bi-person-circle"></i> Profile</a></li>
+        </ul>
+    </div>
+    
+    <div class="main">
+        <h2 class="fw-bold mb-4">DATA SENSOR</h2>
+        
+        <!-- Filter -->
+        <div class="filter-box">
+            <div class="search-form">
+                <input type="text" id="searchKeyword" class="form-control" placeholder="Tìm kiếm giá trị sensor...">
+                <button class="btn btn-primary" id="searchButton" onclick="applyFilters()">Tìm</button>
+            </div>
+            
+            <!-- Filter theo loại sensor -->
+            <select id="deviceFilter" class="form-select">
+                <option value="">Tất cả sensor</option>
+                <option value="temperature">Nhiệt độ</option>
+                <option value="humidity">Độ ẩm</option>
+                <option value="light">Ánh sáng</option>
+            </select>
+
+            <!-- Sắp xếp theo thời gian -->
+            <select id="sortOrder" class="form-select">
+                <option value="-1">Mới nhất ↓</option>
+                <option value="1">Cũ nhất ↑</option>
+            </select>
+
+            <!-- Số bản ghi -->
+            <div class="d-flex align-items-center gap-1">
+                <input type="number" id="limitInput" class="form-control" min="1" max="1000" value="5" style="width: 80px;" onkeypress="handleLimitInputEnter(event)">
+                <span class="text-muted">/trang</span>
             </div>
 
+            <!-- Nút áp dụng -->
+            <button class="btn btn-primary" onclick="applyFilters()" id="applyButton">Áp dụng</button>
+            <button class="btn btn-secondary" onclick="resetFilters()" id="resetButton">Reset</button>
         </div>
-    </nav>
-    <div class="container">
-        <h1 class="mb-4">Data Sensor</h1>
-        <table class="table table-bordered" id="sensorTable">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Nhiệt độ</th>
-                    <th scope="col">Độ ẩm</th>
-                    <th scope="col">Ánh sáng</th>
-                    <th scope="col">Thời gian</th>
-                </tr>
-            </thead>
-            <!-- <tbody>
-                <tr>
-                    <td id="temperature">25°C</td>
-                    <td id="humidity">60%</td>
-                    <td id="light">300 Lux</td>
-                    <td id="timestamp">2023-10-01 12:00:00</td>
-                </tr>
-            </tbody> -->
-            <tbody></tbody>
-        </table>
-    </div>
-    <script>
-        async function loadData() {
-            let response = await fetch('http://localhost:3000/api/data-sensor');
-            let sensorData = await response.json();
-            let tbody = document.querySelector('#sensorTable tbody');
-            tbody.innerHTML = '';
-            sensorData.forEach(data => {
-                console.log(data.temperature);
-            let row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${data.temperature}°C</td>
-                <td>${data.humidity}%</td>
-                <td>${data.light} Lux</td>
-                <td>${new Date(data.createdAt).toLocaleString()}</td>
-            `;
-            tbody.appendChild(row);
-        });
+        
+        <!-- Loading -->
+        <div id="loading" class="loading" style="display: none;">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
 
-        }
-        loadData();
-        setInterval(loadData, 5000); 
-    </script>
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>
+                            <i class="bi bi-thermometer-half text-danger"></i> 
+                            Nhiệt độ
+                        </th>
+                        <th>
+                            <i class="bi bi-droplet-half text-primary"></i> 
+                            Độ ẩm
+                        </th>
+                        <th>
+                            <i class="bi bi-brightness-high text-warning"></i> 
+                            Ánh sáng
+                        </th>
+                        <th>
+                            <i class="bi bi-clock"></i> 
+                            Thời gian
+                            <span id="timeSortIndicator" class="sort-indicator"></span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="historyTable">
+                    <!-- Data render here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No data -->
+        <div id="noData" class="no-data" style="display:none;">
+            <p><i class="bi bi-inbox"></i> Không có dữ liệu cảm biến</p>
+        </div>
+
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination justify-content-center" id="pagination">
+            </ul>
+        </nav>
+        
+        <!-- Input nhập trang -->
+        <div class="d-flex justify-content-center align-items-center gap-2 mt-2">
+            <span class="text-muted">Đi đến trang:</span>
+            <input type="number" id="pageInput" class="form-control" min="1" style="width: 80px;" placeholder="..." onkeypress="handlePageInputEnter(event)">
+            <button class="btn btn-outline-primary btn-sm" onclick="goToPage()">Đi</button>
+        </div>
+        
+        <!-- Pagination Info -->
+        <!-- <div id="paginationInfo" class="pagination-info"></div> -->
+    </div>
+
+    <script src="../frontend/js/script.js"></script>
+    <script src="../frontend/js/dataSensor.js"></script>
 </body>
 </html>

@@ -76,3 +76,56 @@
   border-bottom: 1px solid #eee;
 }
 
+/* Force màu đen cho tất cả giá trị trong bảng */
+.table td {
+  color: #000 !important;
+}
+
+.table .sensor-value {
+  color: #000 !important;
+}
+
+.table .text-muted {
+  color: #6c757d !important;
+}
+
+
+/* Sort indicators */
+.sort-indicator {
+  font-size: 12px;
+  margin-left: 5px;
+  color: #8c52ff;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+/* Table header hover effect */
+.table th {
+  position: relative;
+  cursor: default;
+}
+
+.table th:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+}
+
+/* Apply button highlight */
+#applyButton {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  border: none;
+  color: #fff;
+  font-weight: 600;
+}
+
+#applyButton:hover {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+/* Filter selection highlight */
+.form-select:focus,
+.form-control:focus {
+  border-color: #48bb78;
+  box-shadow: 0 0 0 0.2rem rgba(72, 187, 120, 0.25);
+}

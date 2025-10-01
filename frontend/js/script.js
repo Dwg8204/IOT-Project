@@ -1,11 +1,10 @@
-// script.js - Chứa các hàm dùng chung
 
-// Global variables cho pagination (có thể override trong từng file cụ thể)
+// Global variables cho pagination 
 let globalCurrentPage = 1;
 let globalTotalPages = 1;
 let globalCurrentLimit = 5;
 
-// Hàm render pagination - có thể dùng cho nhiều trang khác nhau
+// Hàm render pagination
 function renderPaginationCommon(paginationData, fetchFunctionName) {
   const currentPage = paginationData.currentPage || 1;
   const totalPages = paginationData.totalPages || paginationData.totalPage || 1;
@@ -22,18 +21,6 @@ function renderPaginationCommon(paginationData, fetchFunctionName) {
   }
 
   pagination.innerHTML = "";
-
-  // Hiển thị thông tin trang - CẢI THIỆN: hiển thị range bản ghi hiện tại
-  if (paginationInfo) {
-    const startRecord = totalItems === 0 ? 0 : (currentPage - 1) * limitItem + 1;
-    const endRecord = Math.min(currentPage * limitItem, totalItems);
-    
-    paginationInfo.innerHTML = `
-      Trang ${currentPage} / ${totalPages} | 
-      Hiển thị ${startRecord}-${endRecord} / ${totalItems} bản ghi |
-      ${limitItem} bản ghi/trang
-    `;
-  }
 
   // Nếu chỉ có 1 trang thì không cần hiển thị pagination
   if (totalPages <= 1) {
@@ -54,7 +41,7 @@ function renderPaginationCommon(paginationData, fetchFunctionName) {
     </li>
   `;
 
-  // Các số trang (hiển thị tối đa 5 số: current-2, current-1, current, current+1, current+2)
+  // Các số trang (hiển thị tối đa 5 số)
   const startPage = Math.max(1, currentPage - 2);
   const endPage = Math.min(totalPages, currentPage + 2);
 
@@ -105,7 +92,7 @@ function renderPaginationCommon(paginationData, fetchFunctionName) {
   `;
 }
 
-// Hàm hiển thị loading - dùng chung
+// Hàm hiển thị loading 
 function showLoadingCommon(show, elementId = 'loading') {
   const loadingEl = document.getElementById(elementId);
   if (loadingEl) {
@@ -113,7 +100,7 @@ function showLoadingCommon(show, elementId = 'loading') {
   }
 }
 
-// Hàm hiển thị/ẩn bảng khi không có dữ liệu - dùng chung
+// Hàm hiển thị/ẩn bảng khi không có dữ liệu
 function toggleNoDataCommon(show, tableSelector = '.table-responsive', noDataSelector = '#noData') {
   const tableEl = document.querySelector(tableSelector);
   const noDataEl = document.querySelector(noDataSelector);
@@ -126,7 +113,7 @@ function toggleNoDataCommon(show, tableSelector = '.table-responsive', noDataSel
   }
 }
 
-// HÀM CHUNG: Xử lý khi người dùng nhập số bản ghi và nhấn Enter
+//Xử lý khi người dùng nhập số bản ghi và nhấn Enter
 function handleLimitInputEnterCommon(event, limitInputId, fetchCallback) {
   if (event.key === 'Enter') {
     event.preventDefault();
@@ -134,7 +121,7 @@ function handleLimitInputEnterCommon(event, limitInputId, fetchCallback) {
   }
 }
 
-// HÀM CHUNG: Xử lý khi người dùng thay đổi số bản ghi trên trang
+//Xử lý khi người dùng thay đổi số bản ghi trên trang
 function handleLimitChangeCommon(limitInputId, fetchCallback) {
   const limitInput = document.getElementById(limitInputId);
   const inputLimit = parseInt(limitInput.value);
@@ -154,13 +141,13 @@ function handleLimitChangeCommon(limitInputId, fetchCallback) {
   
   // Apply new limit
   globalCurrentLimit = inputLimit;
-  console.log(`Đã thay đổi limit thành: ${globalCurrentLimit}`);
+  // console.log(`Đã thay đổi limit thành: ${globalCurrentLimit}`);
   
   // Reset về trang 1 và fetch lại data
   globalCurrentPage = 1;
   updatePageInputCommon(); // Cập nhật input trang
   
-  // Call the specific fetch function
+  // Call fetch function
   if (typeof fetchCallback === 'function') {
     fetchCallback(1);
   } else if (typeof window[fetchCallback] === 'function') {
@@ -168,7 +155,7 @@ function handleLimitChangeCommon(limitInputId, fetchCallback) {
   }
 }
 
-// HÀM CHUNG: Xử lý khi người dùng nhập số trang và nhấn Enter
+//Xử lý khi người dùng nhập số trang và nhấn Enter
 function handlePageInputEnterCommon(event, fetchCallback) {
   if (event.key === 'Enter') {
     event.preventDefault();
@@ -176,7 +163,7 @@ function handlePageInputEnterCommon(event, fetchCallback) {
   }
 }
 
-// HÀM CHUNG: Đi đến trang mà người dùng nhập
+//Đi đến trang mà người dùng nhập
 function goToPageCommon(fetchCallback, pageInputId = 'pageInput') {
   const pageInput = document.getElementById(pageInputId);
   const inputPage = parseInt(pageInput.value);
@@ -197,7 +184,7 @@ function goToPageCommon(fetchCallback, pageInputId = 'pageInput') {
   // Đi đến trang hợp lệ
   console.log(`Đi đến trang: ${inputPage}`);
   
-  // Call the specific fetch function
+  // Call fetch function
   if (typeof fetchCallback === 'function') {
     fetchCallback(inputPage);
   } else if (typeof window[fetchCallback] === 'function') {
@@ -205,7 +192,7 @@ function goToPageCommon(fetchCallback, pageInputId = 'pageInput') {
   }
 }
 
-// HÀM CHUNG: Cập nhật input trang theo trang hiện tại
+//Cập nhật input trang theo trang hiện tại
 function updatePageInputCommon(pageInputId = 'pageInput') {
   const pageInput = document.getElementById(pageInputId);
   if (pageInput) {
@@ -214,7 +201,7 @@ function updatePageInputCommon(pageInputId = 'pageInput') {
   }
 }
 
-// HÀM CHUNG: Reset filters
+// Reset filters
 function resetFiltersCommon(filters, fetchCallback) {
   // Reset form inputs
   Object.keys(filters).forEach(key => {
@@ -237,7 +224,7 @@ function resetFiltersCommon(filters, fetchCallback) {
   }
 }
 
-// HÀM CHUNG: Cập nhật global variables
+//Cập nhật global variables
 function updateGlobalPaginationVars(currentPage, totalPages, currentLimit) {
   globalCurrentPage = currentPage;
   globalTotalPages = totalPages;
@@ -246,7 +233,7 @@ function updateGlobalPaginationVars(currentPage, totalPages, currentLimit) {
   }
 }
 
-// HÀM CHUNG: Get current limit from input
+//Get current limit from input
 function getCurrentLimitFromInput(limitInputId = 'limitInput') {
   const limitInput = document.getElementById(limitInputId);
   return limitInput ? parseInt(limitInput.value) || globalCurrentLimit : globalCurrentLimit;

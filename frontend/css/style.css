@@ -40,3 +40,91 @@ body {
   margin-left: 230px;
   padding: 20px;
 }
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.pagination .page-item .page-link {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+/* Hover effect cho tất cả links không disabled */
+.pagination .page-item:not(.disabled) .page-link:hover {
+  border-color: #8c52ff;
+  color: #8c52ff;
+  background: #f8f4ff;
+}
+
+/* Active page (current page) */
+.pagination .page-item.active .page-link {
+  background: #8c52ff !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-color: #8c52ff !important;
+}
+
+/*First, Previous, Next, Last buttons khi KHÔNG disabled */
+.pagination .page-item:not(.disabled) .page-link[title="Trang đầu"],
+.pagination .page-item:not(.disabled) .page-link[title="Trang trước"],
+.pagination .page-item:not(.disabled) .page-link[title="Trang sau"],
+.pagination .page-item:not(.disabled) .page-link[title="Trang cuối"] {
+  background: #8c52ff;
+  color: #fff;
+  border-color: #8c52ff;
+  font-weight: 500;
+}
+
+/* Hover effect cho navigation buttons */
+.pagination .page-item:not(.disabled) .page-link[title="Trang đầu"]:hover,
+.pagination .page-item:not(.disabled) .page-link[title="Trang trước"]:hover,
+.pagination .page-item:not(.disabled) .page-link[title="Trang sau"]:hover,
+.pagination .page-item:not(.disabled) .page-link[title="Trang cuối"]:hover {
+  background: #7a47e6;
+  border-color: #7a47e6;
+  color: #fff;
+}
+
+/* Disabled state*/
+.pagination .page-item.disabled .page-link {
+  color: #aaa !important;
+  border-color: #ddd !important;
+  background: #f9f9f9 !important;
+  cursor: not-allowed;
+}
+
+
+.pagination .page-item:not(.disabled) .page-link:contains("First"),
+.pagination .page-item:not(.disabled) .page-link:contains("Previous"),
+.pagination .page-item:not(.disabled) .page-link:contains("Next"),
+.pagination .page-item:not(.disabled) .page-link:contains("Last") {
+  background: #8c52ff;
+  color: #fff;
+  border-color: #8c52ff;
+  font-weight: 500;
+}
+
+/* Pagination info */
+.pagination-info {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Input đi đến trang */
+#pageInput {
+  border-radius: 25px;
+  text-align: center;
+}

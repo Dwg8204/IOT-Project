@@ -1,8 +1,7 @@
-// actionHistory.js - Logic riêng cho trang Action History
 
 let currentPage = 1;
 let totalPages = 1;
-let currentLimit = 5; // Biến lưu số bản ghi hiện tại
+let currentLimit = 5; 
 
 const deviceNames = {
   'light': 'Đèn',
@@ -10,34 +9,33 @@ const deviceNames = {
   'air': 'Điều hòa'
 };
 
-// Sử dụng hàm showLoadingCommon từ script.js
 function showLoading(show) {
   showLoadingCommon(show);
 }
 
-// SỬ DỤNG HÀM CHUNG: Xử lý khi người dùng nhập số bản ghi và nhấn Enter
+//Xử lý khi người dùng nhập số bản ghi và nhấn Enter
 function handleLimitInputEnter(event) {
   handleLimitInputEnterCommon(event, 'limitInput', 'fetchData');
 }
 
-// SỬ DỤNG HÀM CHUNG: Xử lý khi người dùng thay đổi số bản ghi trên trang
+//Xử lý khi người dùng thay đổi số bản ghi trên trang
 function handleLimitChange() {
   handleLimitChangeCommon('limitInput', 'fetchData');
   // Sync với local variables
   currentLimit = globalCurrentLimit;
 }
 
-// SỬ DỤNG HÀM CHUNG: Xử lý khi người dùng nhập số trang và nhấn Enter
+// lý khi người dùng nhập số trang và nhấn Enter
 function handlePageInputEnter(event) {
   handlePageInputEnterCommon(event, 'fetchData');
 }
 
-// SỬ DỤNG HÀM CHUNG: Đi đến trang mà người dùng nhập
+//Đi đến trang mà người dùng nhập
 function goToPage() {
   goToPageCommon('fetchData');
 }
 
-// SỬ DỤNG HÀM CHUNG: Cập nhật input trang theo trang hiện tại
+//Cập nhật input trang theo trang hiện tại
 function updatePageInput() {
   updatePageInputCommon();
 }
@@ -80,7 +78,6 @@ async function fetchData(page = 1) {
     if (result.data && result.pagination) {
       renderTable(result.data);
       
-      // SỬ DỤNG HÀM CHUNG: renderPaginationCommon thay vì renderPagination
       renderPaginationCommon(result.pagination, 'fetchData');
       
       // Cập nhật biến local và global
@@ -88,7 +85,7 @@ async function fetchData(page = 1) {
       totalPages = result.pagination.totalPages || result.pagination.totalPage || 1;
       updateGlobalPaginationVars(currentPage, totalPages, currentLimit);
       
-      // CẬP NHẬT input trang
+      // Cập nhật input trang
       updatePageInput();
       
     } else if (Array.isArray(result)) {
@@ -162,7 +159,7 @@ function renderTable(data) {
   });
 }
 
-// SỬ DỤNG HÀM CHUNG: Reset filters
+//Reset filters
 function resetFilters() {
   const filters = {
     searchKeyword: { id: 'searchKeyword', defaultValue: '' },
@@ -180,7 +177,7 @@ function resetFilters() {
 
 // Event listeners
 document.addEventListener("DOMContentLoaded", function() {
-  // Search on Enter
+  // Tìm kiếm sau khi enter
   document.getElementById("searchKeyword").addEventListener("keypress", function(e) {
     if (e.key === "Enter") {
       e.preventDefault();
