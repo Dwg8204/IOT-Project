@@ -4,111 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Action History</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #fff;
-    }
-    .sidebar {
-      width: 240px;
-      min-height: 100vh;
-      background: #f5f5f5;
-      padding: 20px 10px;
-      position: fixed;
-    }
-    .sidebar .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-      margin: 6px 0;
-      border-radius: 10px;
-      padding: 10px 15px;
-      color: #333;
-      text-decoration: none;
-    }
-    .sidebar .nav-link.active {
-      background: #8c52ff;
-      color: #fff;
-    }
-    .content {
-      margin-left: 260px;
-      padding: 20px;
-    }
-    h2 {
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    .filter-box {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .table th {
-      background: #e5e5e5;
-      text-align: center;
-    }
-    .table td {
-      text-align: center;
-    }
-    .pagination .page-link {
-      margin: 0 3px;
-      border-radius: 8px;
-    }
-    .no-data {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-    }
-    .loading {
-      text-align: center;
-      padding: 20px;
-    }
-    .pagination-info {
-      text-align: center;
-      margin-top: 15px;
-      color: #666;
-      font-size: 14px;
-    }
-  </style>
+  <link rel="stylesheet" href="../frontend/css/style.css">
+  <link rel="stylesheet" href="../frontend/css/actionHistory.css">
 </head>
 <body>
   <!-- Sidebar -->
-  <div class="sidebar">
-    <h5 class="fw-bold mb-4">DWG LAPTOP</h5>
-    <nav class="nav flex-column">
-      <a class="nav-link" href="index.html">Home</a>
-      <a class="nav-link" href="dataSensor.html">Data sensor</a>
-      <a class="nav-link active" href="actionHistory.html">Action history</a>
-      <a class="nav-link" href="profile.html">Profile</a>
-    </nav>
+  <div class="sidebar d-flex flex-column">
+    <h4 class="logo">DWG</h4>
+    <ul class="nav flex-column">
+      <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-house-door-fill"></i> Home</a></li>
+      <li class="nav-item"><a href="dataSensor.html" class="nav-link"><i class="bi bi-graph-up"></i> Data sensor</a></li>
+      <li class="nav-item"><a href="actionHistory.html" class="nav-link active"><i class="bi bi-clock-history"></i> Action history</a></li>
+      <li class="nav-item"><a href="profile.html" class="nav-link"><i class="bi bi-person-circle"></i> Profile</a></li>
+    </ul>
   </div>
 
-  <!-- Content -->
-  <div class="content">
-    <h2 class="mb-4">ACTION HISTORY</h2>
+  <!-- Main Content -->
+  <div class="main">
+    <h2 class="fw-bold mb-4">ACTION HISTORY</h2>
 
     <!-- Filter -->
     <div class="filter-box">
-      <input type="text" id="searchKeyword" class="form-control" placeholder="Tìm kiếm..." style="min-width:200px;">
-      <button class="btn btn-primary" onclick="fetchData(1)">Tìm</button>
+      <div class="search-form">
+        <input type="text" id="searchKeyword" class="form-control" placeholder="Tìm kiếm...">
 
-      <select id="deviceFilter" class="form-select" style="max-width:150px;">
+        <button class="btn btn-primary" id="searchButton" onclick="fetchData(1)">Tìm</button>
+      </div>
+      
+
+      <select id="deviceFilter" class="form-select" onchange="fetchData(1)">
         <option value="">Thiết bị</option>
         <option value="light">Đèn</option>
         <option value="fan">Quạt</option>
         <option value="air">Điều hòa</option>
       </select>
 
-      <select id="sortOrder" class="form-select" style="max-width:150px;">
+      <select id="sortOrder" class="form-select" onchange="fetchData(1)">
         <option value="-1">Thứ tự ↓</option>
         <option value="1">Thứ tự ↑</option>
       </select>
 
-      <button class="btn btn-secondary" onclick="resetFilters()">Reset</button>
+      <div class="d-flex align-items-center gap-1">
+        <input type="number" id="limitInput" class="form-control" min="1" max="1000" value="5" style="width: 80px;" onkeypress="handleLimitInputEnter(event)">
+        <span class="text-muted">/trang</span>
+        <button class="btn btn-outline-primary btn-sm" onclick="handleLimitChange()" id="applyButton">Áp dụng</button>
+      </div>
+
+      <button class="btn btn-secondary" onclick="resetFilters()" id="resetButton">Reset</button>
     </div>
 
     <!-- Loading -->
@@ -147,211 +92,16 @@
         <!-- Render here -->
       </ul>
     </nav>
-
+<!-- Input nhập trang -->
+    <div class="d-flex justify-content-center align-items-center gap-2 mt-2">
+      <span class="text-muted">Đi đến trang:</span>
+      <input type="number" id="pageInput" class="form-control" min="1" style="width: 80px;" placeholder="..." onkeypress="handlePageInputEnter(event)">
+      <button class="btn btn-outline-primary btn-sm" onclick="goToPage()">Đi</button>
+    </div>
     <!-- Pagination Info -->
-    <div id="paginationInfo" class="pagination-info"></div>
+    <!-- <div id="paginationInfo" class="pagination-info"></div> -->
   </div>
-
-  <script>
-    let currentPage = 1;
-    let totalPages = 1;
-
-    const deviceNames = {
-      'light': 'Đèn',
-      'fan': 'Quạt',
-      'air': 'Điều hòa'
-    };
-
-    function showLoading(show) {
-      document.getElementById('loading').style.display = show ? 'block' : 'none';
-    }
-
-    async function fetchData(page = 1) {
-      currentPage = page;
-      showLoading(true);
-
-      const keyword = document.getElementById("searchKeyword").value.trim();
-      const device = document.getElementById("deviceFilter").value;
-      const sortOrder = document.getElementById("sortOrder").value;
-
-      const params = new URLSearchParams();
-      params.append("page", page);
-      params.append("limit", 5);
-      
-      if (keyword) params.append("keyword", keyword);
-      if (device) params.append("device", device);
-      
-      if (sortOrder) {
-        params.append("sortKey", "createAt");
-        params.append("sortValue", sortOrder);
-      }
-
-      const url = `http://localhost:3000/api/action-history?${params.toString()}`;
-      console.log("Fetch URL:", url);
-
-      try {
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        }
-        
-        const result = await res.json();
-        console.log("API Response:", result);
-
-        if (result.data && result.pagination) {
-          renderTable(result.data);
-          renderPagination(result.pagination);
-        } else if (Array.isArray(result)) {
-          renderTable(result);
-          renderPagination({
-            currentPage: 1,
-            totalPages: 1,
-            totalItems: result.length,
-            limitItem: result.length
-          });
-        } else {
-          console.warn("Unknown response format:", result);
-          renderTable([]);
-        }
-
-      } catch (err) {
-        console.error("Fetch error:", err);
-        alert("Lỗi khi tải dữ liệu: " + err.message);
-        renderTable([]);
-      } finally {
-        showLoading(false);
-      }
-    }
-
-    function renderTable(data) {
-      const tbody = document.getElementById("historyTable");
-      const noDataDiv = document.getElementById("noData");
-      tbody.innerHTML = "";
-
-      if (!data || !data.length) {
-        noDataDiv.style.display = "block";
-        document.querySelector(".table-responsive").style.display = "none";
-        return;
-      }
-      
-      noDataDiv.style.display = "none";
-      document.querySelector(".table-responsive").style.display = "block";
-
-      data.forEach((row, idx) => {
-        const tr = document.createElement("tr");
-
-        const deviceName = deviceNames[row.device] || row.device;
-        const actionText = row.action === "on" ? "Bật" : "Tắt";
-        const timeStr = row.createAt || row.createdAt;
-        
-        // Format thời gian đơn giản
-        let timeFormatted = "--";
-        if (timeStr) {
-          const date = new Date(timeStr);
-          timeFormatted = date.toLocaleString("vi-VN");
-        }
-        
-        // Status badge
-        let statusBadge = '';
-        if (row.status === 'ok') {
-          statusBadge = '<span class="badge bg-success">OK</span>';
-        } else if (row.status === 'error') {
-          statusBadge = '<span class="badge bg-danger">Error</span>';
-        } else {
-          statusBadge = `<span class="badge bg-secondary">${row.status || 'N/A'}</span>`;
-        }
-
-        tr.innerHTML = `
-          <td>${(currentPage - 1) * 5 + idx + 1}</td>
-          <td>${deviceName}</td>
-          <td><span class="${row.action === 'on' ? 'text-success' : 'text-danger'}">${actionText}</span></td>
-          <td>${statusBadge}</td>
-          <td>${timeFormatted}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderPagination(paginationData) {
-      currentPage = paginationData.currentPage || 1;
-      totalPages = paginationData.totalPages || paginationData.totalPage || 1;
-      const totalItems = paginationData.totalItems || 0;
-      const limitItem = paginationData.limitItem || 5;
-
-      const pagination = document.getElementById("pagination");
-      const paginationInfo = document.getElementById("paginationInfo");
-      
-      pagination.innerHTML = "";
-
-      paginationInfo.innerHTML = `
-        Trang ${currentPage} / ${totalPages} | 
-        Hiển thị ${Math.min(limitItem, totalItems)} / ${totalItems} bản ghi
-      `;
-
-      if (totalPages <= 1) {
-        return;
-      }
-
-      // First
-      pagination.innerHTML += `
-        <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
-          <a class="page-link" href="#" onclick="fetchData(1)">First</a>
-        </li>
-      `;
-
-      // Previous
-      pagination.innerHTML += `
-        <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
-          <a class="page-link" href="#" onclick="fetchData(${currentPage - 1})">Previous</a>
-        </li>
-      `;
-
-      // Page numbers
-      const startPage = Math.max(1, currentPage - 2);
-      const endPage = Math.min(totalPages, currentPage + 2);
-
-      for (let i = startPage; i <= endPage; i++) {
-        pagination.innerHTML += `
-          <li class="page-item ${i === currentPage ? "active" : ""}">
-            <a class="page-link" href="#" onclick="fetchData(${i})">${i}</a>
-          </li>
-        `;
-      }
-
-      // Next
-      pagination.innerHTML += `
-        <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
-          <a class="page-link" href="#" onclick="fetchData(${currentPage + 1})">Next</a>
-        </li>
-      `;
-
-      // Last
-      pagination.innerHTML += `
-        <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
-          <a class="page-link" href="#" onclick="fetchData(${totalPages})">Last</a>
-        </li>
-      `;
-    }
-
-    function resetFilters() {
-      document.getElementById("searchKeyword").value = "";
-      document.getElementById("deviceFilter").value = "";
-      document.getElementById("sortOrder").value = "-1";
-      fetchData(1);
-    }
-
-    // Event listeners
-    document.getElementById("searchKeyword").addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        fetchData(1);
-      }
-    });
-
-    // Load data khi trang load
-    document.addEventListener("DOMContentLoaded", function() {
-      fetchData(1);
-    });
-  </script>
+  <script src="../frontend/js/script.js"></script>
+  <script src="../frontend/js/actionHistory.js"></script>
 </body>
 </html>

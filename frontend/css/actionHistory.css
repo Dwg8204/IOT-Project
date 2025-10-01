@@ -1,0 +1,168 @@
+/* Bọc filter */
+.filter-box {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+  margin-bottom: 20px;
+  /* flex-wrap: wrap; */
+}
+.search-form{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Input tìm kiếm nhỏ lại */
+#searchKeyword {
+  width: 350px;        /* thay vì full width */
+  border-radius: 25px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+/* Select + Input số đồng bộ */
+#deviceFilter,
+#sortOrder,
+#limitInput {
+  max-width: 120px;
+  border-radius: 25px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+/* Nút */
+#searchButton,
+#applyButton,
+#resetButton {
+  border-radius: 25px;
+  padding: 6px 16px;
+  font-size: 14px;
+}
+
+#searchButton {
+  background-color: #0066ff;
+  border: none;
+  color: #fff;
+}
+
+#applyButton
+{
+  background: #0066ff;
+  border: 1px solid #ccc;
+  color: #fff;
+}
+#resetButton {
+  background: #DC3545;
+  border: 1px solid #ccc;
+  color: #fff;
+}
+/* Table */
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table th {
+  background: #e5e5e5;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px;
+}
+
+.table td {
+  text-align: center;
+  font-size: 14px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* PAGINATION STYLES - CẢI THIỆN */
+.pagination .page-item .page-link {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+/* Hover effect cho tất cả links không disabled */
+.pagination .page-item:not(.disabled) .page-link:hover {
+  border-color: #8c52ff;
+  color: #8c52ff;
+  background: #f8f4ff;
+}
+
+/* Active page (current page) */
+.pagination .page-item.active .page-link {
+  background: #8c52ff !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-color: #8c52ff !important;
+}
+
+/* THÊM MỚI: Style riêng cho First, Previous, Next, Last buttons khi KHÔNG disabled */
+.pagination .page-item:not(.disabled) .page-link[title="Trang đầu"],
+.pagination .page-item:not(.disabled) .page-link[title="Trang trước"],
+.pagination .page-item:not(.disabled) .page-link[title="Trang sau"],
+.pagination .page-item:not(.disabled) .page-link[title="Trang cuối"] {
+  background: #8c52ff;
+  color: #fff;
+  border-color: #8c52ff;
+  font-weight: 500;
+}
+
+/* Hover effect cho navigation buttons */
+.pagination .page-item:not(.disabled) .page-link[title="Trang đầu"]:hover,
+.pagination .page-item:not(.disabled) .page-link[title="Trang trước"]:hover,
+.pagination .page-item:not(.disabled) .page-link[title="Trang sau"]:hover,
+.pagination .page-item:not(.disabled) .page-link[title="Trang cuối"]:hover {
+  background: #7a47e6;
+  border-color: #7a47e6;
+  color: #fff;
+}
+
+/* Disabled state (giữ nguyên) */
+.pagination .page-item.disabled .page-link {
+  color: #aaa !important;
+  border-color: #ddd !important;
+  background: #f9f9f9 !important;
+  cursor: not-allowed;
+}
+
+/* Alternative: Nếu muốn dùng text content thay vì title attribute */
+.pagination .page-item:not(.disabled) .page-link:contains("First"),
+.pagination .page-item:not(.disabled) .page-link:contains("Previous"),
+.pagination .page-item:not(.disabled) .page-link:contains("Next"),
+.pagination .page-item:not(.disabled) .page-link:contains("Last") {
+  background: #8c52ff;
+  color: #fff;
+  border-color: #8c52ff;
+  font-weight: 500;
+}
+
+/* Pagination info */
+.pagination-info {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Input đi đến trang */
+#pageInput {
+  border-radius: 25px;
+  text-align: center;
+}
