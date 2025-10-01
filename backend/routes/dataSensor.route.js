@@ -3,5 +3,4 @@ const router = express.Router();
 const controller = require('../controllers/dataSensor.controller');
 
 router.get('/', controller.index);
-
 module.exports = router;
