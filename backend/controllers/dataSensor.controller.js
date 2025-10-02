@@ -19,20 +19,26 @@ module.exports.index = async (req, res) => {
     const keyword = search.keyword;
     
     if (keyword) {
-      // Tìm kiếm trong các trường số của sensor
-      const numericKeyword = parseFloat(keyword);
-      if (!isNaN(numericKeyword)) {
-        find.$or = [
-          { temperature: numericKeyword },
-          { humidity: numericKeyword },
-          { light: numericKeyword },
-        ];
+      // SỬA: THÊM LOGIC TIME SEARCH GIỐNG ACTIONHISTORY
+      if (search.timeSearch) {
+        console.log('Time search detected:', search.timeSearch);
+        find.createdAt = search.timeSearch; // ✅ SỬ DỤNG createdAt cho dataSensor
       } else {
-        find.$or = [
-          { temperature: search.regex },
-          { humidity: search.regex },
-          { light: search.regex },
-        ];
+        // Tìm kiếm trong các trường số của sensor
+        const numericKeyword = parseFloat(keyword);
+        if (!isNaN(numericKeyword)) {
+          find.$or = [
+            { temperature: numericKeyword },
+            { humidity: numericKeyword },
+            { light: numericKeyword },
+          ];
+        } else {
+          find.$or = [
+            { temperature: search.regex },
+            { humidity: search.regex },
+            { light: search.regex },
+          ];
+        }
       }
     }
 

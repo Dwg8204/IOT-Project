@@ -1,4 +1,3 @@
-
 let currentPage = 1;
 let totalPages = 1;
 let currentLimit = 5; 
@@ -38,6 +37,131 @@ function goToPage() {
 //Cập nhật input trang theo trang hiện tại
 function updatePageInput() {
   updatePageInputCommon();
+}
+
+// THÊM MỚI: Hàm copy thời gian khi double-click
+function copyTimeToClipboard(timeString, element) {
+  // Kiểm tra xem có phải thời gian hợp lệ không
+  if (!timeString || timeString === '--') {
+    showToast('⚠️ Không có thời gian để copy!', 'warning');
+    return;
+  }
+
+  try {
+    // Copy vào clipboard
+    navigator.clipboard.writeText(timeString).then(() => {
+      // Hiển thị thông báo thành công
+      showToast('✅ Đã copy thời gian: ' + timeString, 'success');
+      
+      // Hiệu ứng visual cho ô được copy
+      element.classList.add('copied');
+      setTimeout(() => {
+        element.classList.remove('copied');
+      }, 1000);
+      
+      // Tự động paste vào search box (tùy chọn)
+      const searchInput = document.getElementById('searchKeyword');
+      if (searchInput) {
+        searchInput.value = timeString;
+        searchInput.focus();
+        
+        // Hiệu ứng highlight search input
+        searchInput.classList.add('highlight');
+        setTimeout(() => {
+          searchInput.classList.remove('highlight');
+        }, 1000);
+      }
+      
+    }).catch(err => {
+      console.error('Lỗi copy:', err);
+      // Fallback cho trình duyệt cũ
+      fallbackCopyTextToClipboard(timeString, element);
+    });
+  } catch (err) {
+    console.error('Clipboard API không được hỗ trợ:', err);
+    // Fallback cho trình duyệt cũ
+    fallbackCopyTextToClipboard(timeString, element);
+  }
+}
+
+// THÊM MỚI: Fallback copy cho trình duyệt cũ
+function fallbackCopyTextToClipboard(text, element) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  
+  // Tránh scroll khi thêm textarea
+  textArea.style.top = "0";
+  textArea.style.left = "0";
+  textArea.style.position = "fixed";
+  textArea.style.opacity = "0";
+  
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  
+  try {
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showToast('✅ Đã copy thời gian: ' + text, 'success');
+      
+      // Hiệu ứng visual
+      element.classList.add('copied');
+      setTimeout(() => {
+        element.classList.remove('copied');
+      }, 1000);
+      
+      // Auto paste vào search
+      const searchInput = document.getElementById('searchKeyword');
+      if (searchInput) {
+        searchInput.value = text;
+        searchInput.focus();
+        searchInput.classList.add('highlight');
+        setTimeout(() => {
+          searchInput.classList.remove('highlight');
+        }, 1000);
+      }
+    } else {
+      showToast('❌ Không thể copy thời gian!', 'error');
+    }
+  } catch (err) {
+    console.error('Fallback copy failed:', err);
+    showToast('❌ Không thể copy thời gian!', 'error');
+  }
+  
+  document.body.removeChild(textArea);
+}
+
+// THÊM MỚI: Hiển thị toast notification
+function showToast(message, type = 'info') {
+  // Tạo toast element
+  const toast = document.createElement('div');
+  toast.className = `toast-notification toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-content">
+      <span class="toast-message">${message}</span>
+      <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+  `;
+  
+  // Thêm vào body
+  document.body.appendChild(toast);
+  
+  // Animation show
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
+  
+  // Auto remove sau 3 giây
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, 3000);
 }
 
 async function fetchData(page = 1) {
@@ -153,7 +277,10 @@ function renderTable(data) {
       <td>${deviceName}</td>
       <td><span class="${row.action === 'on' ? 'text-success' : 'text-danger'}">${actionText}</span></td>
       <td>${statusBadge}</td>
-      <td>${timeFormatted}</td>
+      <td class="time-cell copyable" title="Double-click để copy thời gian" ondblclick="copyTimeToClipboard('${timeFormatted}', this)">
+        <i class="bi bi-clock me-1"></i>
+        ${timeFormatted}
+      </td>
     `;
     tbody.appendChild(tr);
   });

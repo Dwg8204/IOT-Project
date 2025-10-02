@@ -128,3 +128,203 @@ body {
   border-radius: 25px;
   text-align: center;
 }
+
+
+
+
+
+/* THÊM MỚI: Copy time feature styles */
+.time-cell.copyable {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.time-cell.copyable:hover {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  transform: scale(1.02);
+}
+
+.time-cell.copyable:active {
+  background-color: #bbdefb;
+  transform: scale(0.98);
+}
+
+/* Hiệu ứng khi copy thành công */
+.time-cell.copied {
+  background-color: #c8e6c9 !important;
+  color: #2e7d32 !important;
+  animation: copySuccess 1s ease;
+}
+
+@keyframes copySuccess {
+  0% { 
+    background-color: #4caf50;
+    color: white;
+    transform: scale(1.05);
+  }
+  100% { 
+    background-color: #c8e6c9;
+    color: #2e7d32;
+    transform: scale(1);
+  }
+}
+
+/* Search input highlight khi được paste */
+#searchKeyword.highlight {
+  border-color: #4caf50 !important;
+  box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25) !important;
+  animation: inputHighlight 1s ease;
+}
+
+@keyframes inputHighlight {
+  0% { 
+    background-color: #c8e6c9;
+  }
+  100% { 
+    background-color: white;
+  }
+}
+
+/* Toast notification styles */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 400px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateX(450px);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toast-notification.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+/* Toast types */
+.toast-success {
+  border-left: 4px solid #4caf50;
+}
+
+.toast-success .toast-message {
+  color: #2e7d32;
+}
+
+.toast-warning {
+  border-left: 4px solid #ff9800;
+}
+
+.toast-warning .toast-message {
+  color: #ef6c00;
+}
+
+.toast-error {
+  border-left: 4px solid #f44336;
+}
+
+.toast-error .toast-message {
+  color: #c62828;
+}
+
+.toast-info {
+  border-left: 4px solid #2196f3;
+}
+
+.toast-info .toast-message {
+  color: #1565c0;
+}
+
+/* Tooltip hint */
+.time-cell.copyable::after {
+  content: "Double-click để copy";
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.time-cell.copyable:hover::after {
+  opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .toast-notification {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    transform: translateY(-100px);
+  }
+  
+  .toast-notification.show {
+    transform: translateY(0);
+  }
+  
+  .time-cell.copyable::after {
+    display: none; /* Ẩn tooltip trên mobile */
+  }
+}
+
+/* Icon animation */
+.time-cell.copyable:hover .bi-clock {
+  animation: clockTick 0.5s ease;
+}
+
+@keyframes clockTick {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
