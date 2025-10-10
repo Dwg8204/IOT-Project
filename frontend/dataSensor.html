@@ -14,7 +14,7 @@
     <div class="sidebar d-flex flex-column">
         <h4 class="logo">DWG</h4>
         <ul class="nav flex-column">
-            <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-house-door-fill"></i> Home</a></li>
+            <li class="nav-item"><a href="index.html" class="nav-link"><i class="bi bi-house-door-fill"></i> Dashboard</a></li>
             <li class="nav-item"><a href="dataSensor.html" class="nav-link active"><i class="bi bi-graph-up"></i> Data sensor</a></li>
             <li class="nav-item"><a href="actionHistory.html" class="nav-link"><i class="bi bi-clock-history"></i> Action history</a></li>
             <li class="nav-item"><a href="profile.html" class="nav-link"><i class="bi bi-person-circle"></i> Profile</a></li>
@@ -30,19 +30,24 @@
                 <input type="text" id="searchKeyword" class="form-control" placeholder="Tìm kiếm giá trị sensor...">
                 <button class="btn btn-primary" id="searchButton" onclick="applyFilters()">Tìm</button>
             </div>
-            
-            <!-- Filter theo loại sensor -->
-            <select id="deviceFilter" class="form-select">
-                <option value="">Tất cả</option>
+            <select id="searchType" class="form-select" onchange="updateSearchPlaceholder()">
+                <option value="time">Thời gian</option>
+                <option value="temperature">Nhiệt độ</option>
+                <option value="humidity">Độ ẩm</option>
+                <option value="light">Ánh sáng</option>
+            </select>
+            <!-- Sắp xếp theo trường -->
+            <select id="sortKey" class="form-select">
+                <option value="createdAt">Thời gian</option>
                 <option value="temperature">Nhiệt độ</option>
                 <option value="humidity">Độ ẩm</option>
                 <option value="light">Ánh sáng</option>
             </select>
 
-            <!-- Sắp xếp theo thời gian -->
+            <!-- Thứ tự sắp xếp -->
             <select id="sortOrder" class="form-select">
-                <option value="-1">Mới nhất ↓</option>
-                <option value="1">Cũ nhất ↑</option>
+                <option value="-1">Giảm dần ↓</option>
+                <option value="1">Tăng dần ↑</option>
             </select>
 
             <!-- Số bản ghi -->
@@ -52,7 +57,7 @@
             </div>
 
             <!-- Nút áp dụng -->
-            <button class="btn btn-primary" onclick="applyFilters()" id="applyButton">Áp dụng</button>
+            <!-- <button class="btn btn-primary" onclick="applyFilters()" id="applyButton">Áp dụng</button> -->
             <button class="btn btn-secondary" onclick="resetFilters()" id="resetButton">Reset</button>
         </div>
         

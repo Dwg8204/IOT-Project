@@ -14,58 +14,86 @@ function showLoading(show) {
 
 //Xử lý khi người dùng nhập số bản ghi và nhấn Enter
 function handleLimitInputEnter(event) {
-  handleLimitInputEnterCommon(event, 'limitInput', 'fetchData');
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    applyFilters();
+  }
 }
 
-//Xử lý khi người dùng thay đổi số bản ghi trên trang
 function handleLimitChange() {
-  handleLimitChangeCommon('limitInput', 'fetchData');
-  // Sync với local variables
-  currentLimit = globalCurrentLimit;
+  applyFilters();
 }
 
-// lý khi người dùng nhập số trang và nhấn Enter
+// Hàm áp dụng tất cả filters
+function applyFilters() {
+  const limitInput = document.getElementById('limitInput');
+  const inputLimit = parseInt(limitInput.value);
+  
+  if (isNaN(inputLimit) || inputLimit < 1) {
+    alert("Vui lòng nhập số bản ghi hợp lệ (từ 1 trở lên)");
+    limitInput.value = currentLimit;
+    return;
+  }
+  
+  if (inputLimit > 1000) {
+    alert("Số bản ghi tối đa là 1000 để đảm bảo hiệu suất");
+    limitInput.value = currentLimit;
+    return;
+  }
+  
+  const applyButton = document.getElementById('applyButton');
+  if (applyButton) {
+    const originalText = applyButton.innerHTML;
+    applyButton.innerHTML = '<i class="spinner-border spinner-border-sm"></i> Đang áp dụng...';
+    applyButton.disabled = true;
+    
+    setTimeout(() => {
+      applyButton.innerHTML = originalText;
+      applyButton.disabled = false;
+    }, 1000);
+  }
+  
+  currentLimit = inputLimit;
+  globalCurrentLimit = inputLimit;
+  globalCurrentPage = 1;
+  currentPage = 1;
+  
+  fetchData(1);
+}
+
 function handlePageInputEnter(event) {
   handlePageInputEnterCommon(event, 'fetchData');
 }
 
-//Đi đến trang mà người dùng nhập
 function goToPage() {
   goToPageCommon('fetchData');
 }
 
-//Cập nhật input trang theo trang hiện tại
 function updatePageInput() {
   updatePageInputCommon();
 }
 
-// THÊM MỚI: Hàm copy thời gian khi double-click
+// Copy time functions
 function copyTimeToClipboard(timeString, element) {
-  // Kiểm tra xem có phải thời gian hợp lệ không
   if (!timeString || timeString === '--') {
     showToast('⚠️ Không có thời gian để copy!', 'warning');
     return;
   }
 
   try {
-    // Copy vào clipboard
     navigator.clipboard.writeText(timeString).then(() => {
-      // Hiển thị thông báo thành công
       showToast('✅ Đã copy thời gian: ' + timeString, 'success');
       
-      // Hiệu ứng visual cho ô được copy
       element.classList.add('copied');
       setTimeout(() => {
         element.classList.remove('copied');
       }, 1000);
       
-      // Tự động paste vào search box (tùy chọn)
       const searchInput = document.getElementById('searchKeyword');
       if (searchInput) {
         searchInput.value = timeString;
         searchInput.focus();
         
-        // Hiệu ứng highlight search input
         searchInput.classList.add('highlight');
         setTimeout(() => {
           searchInput.classList.remove('highlight');
@@ -74,22 +102,17 @@ function copyTimeToClipboard(timeString, element) {
       
     }).catch(err => {
       console.error('Lỗi copy:', err);
-      // Fallback cho trình duyệt cũ
       fallbackCopyTextToClipboard(timeString, element);
     });
   } catch (err) {
     console.error('Clipboard API không được hỗ trợ:', err);
-    // Fallback cho trình duyệt cũ
     fallbackCopyTextToClipboard(timeString, element);
   }
 }
 
-// THÊM MỚI: Fallback copy cho trình duyệt cũ
 function fallbackCopyTextToClipboard(text, element) {
   const textArea = document.createElement("textarea");
   textArea.value = text;
-  
-  // Tránh scroll khi thêm textarea
   textArea.style.top = "0";
   textArea.style.left = "0";
   textArea.style.position = "fixed";
@@ -104,13 +127,11 @@ function fallbackCopyTextToClipboard(text, element) {
     if (successful) {
       showToast('✅ Đã copy thời gian: ' + text, 'success');
       
-      // Hiệu ứng visual
       element.classList.add('copied');
       setTimeout(() => {
         element.classList.remove('copied');
       }, 1000);
       
-      // Auto paste vào search
       const searchInput = document.getElementById('searchKeyword');
       if (searchInput) {
         searchInput.value = text;
@@ -131,9 +152,7 @@ function fallbackCopyTextToClipboard(text, element) {
   document.body.removeChild(textArea);
 }
 
-// THÊM MỚI: Hiển thị toast notification
 function showToast(message, type = 'info') {
-  // Tạo toast element
   const toast = document.createElement('div');
   toast.className = `toast-notification toast-${type}`;
   toast.innerHTML = `
@@ -145,15 +164,12 @@ function showToast(message, type = 'info') {
     </div>
   `;
   
-  // Thêm vào body
   document.body.appendChild(toast);
   
-  // Animation show
   setTimeout(() => {
     toast.classList.add('show');
   }, 100);
   
-  // Auto remove sau 3 giây
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => {
@@ -164,15 +180,28 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
+// Hàm cập nhật sort indicators
+function updateSortIndicators(sortOrder) {
+  document.querySelectorAll('.sort-indicator').forEach(indicator => {
+    indicator.innerHTML = '';
+  });
+  
+  const indicator = document.getElementById('timeSortIndicator');
+  if (indicator) {
+    indicator.innerHTML = sortOrder === '1' ? ' ↑' : ' ↓';
+    indicator.style.color = '#8c52ff';
+    indicator.style.fontWeight = 'bold';
+  }
+}
+
 async function fetchData(page = 1) {
   currentPage = page;
   showLoading(true);
 
   const keyword = document.getElementById("searchKeyword").value.trim();
-  const device = document.getElementById("deviceFilter").value;
+  const deviceFilter = document.getElementById("deviceFilter").value;
   const sortOrder = document.getElementById("sortOrder").value;
   
-  // Lấy current limit từ input hoặc biến global
   currentLimit = getCurrentLimitFromInput('limitInput');
 
   const params = new URLSearchParams();
@@ -180,15 +209,15 @@ async function fetchData(page = 1) {
   params.append("limit", currentLimit);
   
   if (keyword) params.append("keyword", keyword);
-  if (device) params.append("device", device);
+  if (deviceFilter) params.append("device", deviceFilter);
   
-  if (sortOrder) {
-    params.append("sortKey", "createAt");
-    params.append("sortValue", sortOrder);
-  }
+  // Sort theo thời gian
+  params.append("sortKey", "createAt");
+  params.append("sortValue", sortOrder);
 
   const url = `http://localhost:3000/api/action-history?${params.toString()}`;
   console.log("Fetch URL:", url);
+  console.log("Filter params:", { keyword, deviceFilter, sortOrder });
 
   try {
     const res = await fetch(url);
@@ -200,20 +229,22 @@ async function fetchData(page = 1) {
     console.log("API Response:", result);
 
     if (result.data && result.pagination) {
-      renderTable(result.data);
+      // 🔹 THÊM: Truyền pagination info để tính STT
+      renderTable(result.data, result.pagination);
       
       renderPaginationCommon(result.pagination, 'fetchData');
       
-      // Cập nhật biến local và global
       currentPage = result.pagination.currentPage || 1;
       totalPages = result.pagination.totalPages || result.pagination.totalPage || 1;
       updateGlobalPaginationVars(currentPage, totalPages, currentLimit);
       
-      // Cập nhật input trang
       updatePageInput();
       
+      // Cập nhật sort indicators
+      updateSortIndicators(sortOrder);
+      
     } else if (Array.isArray(result)) {
-      renderTable(result);
+      renderTable(result, { currentPage: 1, limitItem: result.length });
       renderPaginationCommon({
         currentPage: 1,
         totalPages: 1,
@@ -232,14 +263,15 @@ async function fetchData(page = 1) {
 
   } catch (err) {
     console.error("Fetch error:", err);
-    alert("Lỗi khi tải dữ liệu: " + err.message);
+    showToast("Lỗi khi tải action history: " + err.message, 'error');
     renderTable([]);
   } finally {
     showLoading(false);
   }
 }
 
-function renderTable(data) {
+// 🔹 SỬA: Hàm render table với số thứ tự
+function renderTable(data, pagination = null) {
   const tbody = document.getElementById("historyTable");
   tbody.innerHTML = "";
 
@@ -250,11 +282,21 @@ function renderTable(data) {
   
   toggleNoDataCommon(false);
 
+  // 🔹 Tính số thứ tự bắt đầu
+  let startIndex = 1;
+  if (pagination) {
+    const currentPage = pagination.currentPage || 1;
+    const limitItem = pagination.limitItem || currentLimit;
+    startIndex = (currentPage - 1) * limitItem + 1;
+  }
+
   data.forEach((row, idx) => {
     const tr = document.createElement("tr");
 
+    // 🔹 SỬA: Tính số thứ tự
+    const rowNumber = startIndex + idx;
+    
     const deviceName = deviceNames[row.device] || row.device;
-    const actionText = row.action === "on" ? "Bật" : "Tắt";
     const timeStr = row.createAt || row.createdAt;
     
     let timeFormatted = "--";
@@ -263,20 +305,29 @@ function renderTable(data) {
       timeFormatted = date.toLocaleString("vi-VN");
     }
     
-    let statusBadge = '';
-    if (row.status === 'ok') {
-      statusBadge = '<span class="badge bg-success">OK</span>';
-    } else if (row.status === 'error') {
-      statusBadge = '<span class="badge bg-danger">Error</span>';
-    } else {
-      statusBadge = `<span class="badge bg-secondary">${row.status || 'N/A'}</span>`;
-    }
+    // Action badge
+    const actionBadge = row.action === 'on' 
+      ? '<span class="badge bg-success">Bật</span>' 
+      : '<span class="badge bg-secondary">Tắt</span>';
+    
+    // Status badge
+    // let statusBadge = '';
+    // if (row.status === 'ok') {
+    //   statusBadge = '<span class="badge bg-success">OK</span>';
+    // } else if (row.status === 'error') {
+    //   statusBadge = '<span class="badge bg-danger">Error</span>';
+    // } else {
+    //   statusBadge = `<span class="badge bg-secondary">${row.status || 'N/A'}</span>`;
+    // }
 
     tr.innerHTML = `
-      <td>${(currentPage - 1) * currentLimit + idx + 1}</td>
-      <td>${deviceName}</td>
-      <td><span class="${row.action === 'on' ? 'text-success' : 'text-danger'}">${actionText}</span></td>
-      <td>${statusBadge}</td>
+      <td class="fw-bold text-dark text-center">
+        ${rowNumber}
+      </td>
+      <td>
+        ${deviceName}
+      </td>
+      <td>${actionBadge}</td>
       <td class="time-cell copyable" title="Double-click để copy thời gian" ondblclick="copyTimeToClipboard('${timeFormatted}', this)">
         <i class="bi bi-clock me-1"></i>
         ${timeFormatted}
@@ -286,37 +337,75 @@ function renderTable(data) {
   });
 }
 
-//Reset filters
 function resetFilters() {
-  const filters = {
-    searchKeyword: { id: 'searchKeyword', defaultValue: '' },
-    deviceFilter: { id: 'deviceFilter', defaultValue: '' },
-    sortOrder: { id: 'sortOrder', defaultValue: '-1' },
-    limitInput: { id: 'limitInput', defaultValue: '5' }
-  };
+  const resetButton = document.getElementById('resetButton');
+  if (resetButton) {
+    const originalText = resetButton.innerHTML;
+    resetButton.innerHTML = '<i class="spinner-border spinner-border-sm"></i> Đang reset...';
+    resetButton.disabled = true;
+    
+    setTimeout(() => {
+      resetButton.innerHTML = originalText;
+      resetButton.disabled = false;
+    }, 1000);
+  }
   
-  resetFiltersCommon(filters, 'fetchData');
+  // Reset form values
+  document.getElementById('searchKeyword').value = '';
+  document.getElementById('deviceFilter').value = '';
+  document.getElementById('sortOrder').value = '-1';
+  document.getElementById('limitInput').value = '5';
   
-  // Sync với local variables
+  // Reset pagination variables
   currentLimit = 5;
   currentPage = 1;
+  globalCurrentLimit = 5;
+  globalCurrentPage = 1;
+  updatePageInputCommon();
+  
+  // Clear sort indicators
+  document.querySelectorAll('.sort-indicator').forEach(indicator => {
+    indicator.innerHTML = '';
+  });
+  
+  // Fetch data với filters đã reset
+  fetchData(1);
 }
 
 // Event listeners
 document.addEventListener("DOMContentLoaded", function() {
-  // Tìm kiếm sau khi enter
-  document.getElementById("searchKeyword").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      fetchData(1);
-    }
-  });
+  
+  // Tìm kiếm khi nhấn Enter trong search box
+  const searchInput = document.getElementById("searchKeyword");
+  if (searchInput) {
+    searchInput.addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        applyFilters();
+      }
+    });
+  }
+
+  // Validation cho limit input (không auto-apply)
+  const limitInput = document.getElementById("limitInput");
+  if (limitInput) {
+    limitInput.addEventListener("input", function() {
+      const inputLimit = parseInt(this.value);
+      if (isNaN(inputLimit) || inputLimit < 1 || inputLimit > 1000) {
+        this.classList.add('is-invalid');
+      } else {
+        this.classList.remove('is-invalid');
+      }
+    });
+  }
 
   // Set giá trị mặc định
   document.getElementById("limitInput").value = "5";
+  document.getElementById("sortOrder").value = "-1";
   currentLimit = 5;
   updateGlobalPaginationVars(1, 1, 5);
 
   // Load data lần đầu
+  console.log("📊 Loading initial action history data...");
   fetchData(1);
 });

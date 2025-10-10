@@ -1,8 +1,8 @@
 const mqtt = require('mqtt');
 const host = process.env.MQTT_HOST || 'localhost';
 const port = process.env.MQTT_PORT || '1883';
-const username = process.env.MQTT_USERNAME ;
-const password = process.env.MQTT_PASSWORD ;
+const username = process.env.MQTT_USERNAME;
+const password = process.env.MQTT_PASSWORD;
 const options = {};
 const pendingAction = require('../utils/pendingAction');
 const dataSensor = require('../models/dataSensor.model');
@@ -32,6 +32,7 @@ client.on('connect', () => {
         }
     });
 });
+
 client.on('message', (topic, message) => {
   const text = message.toString();
   
@@ -72,9 +73,21 @@ client.on('message', (topic, message) => {
       console.warn('ACK không hợp lệ, bỏ qua:', text);
       return;
     }
-// CẬP NHẬT CACHE KHI NHẬN ACK THÀNH CÔNG
+
+    // CẬP NHẬT CACHE KHI NHẬN ACK THÀNH CÔNG
     if (status === 'ok' && device && action) {
       deviceStateCache.updateState(device, action);
+      
+      // 🔹 THÊM: Emit device state update qua Socket.IO
+      if (global.io) {
+        global.io.emit('deviceStateUpdate', {
+          device,
+          action,
+          status,
+          timestamp: new Date().toISOString()
+        });
+        console.log(`📡 [Socket.IO] Emitted deviceStateUpdate: ${device}.${action}`);
+      }
     }
 
     const cb = pendingAction.get(key);
@@ -97,18 +110,35 @@ client.on('message', (topic, message) => {
           humidity: data.humidity,
           light: data.light
         });
-        doc.save();
+        
+        doc.save().then((savedDoc) => {
+          console.log('✅ Đã lưu sensor data vào DB');
+          
+          // 🔹 THÊM: Emit sensor data realtime qua Socket.IO
+          if (global.io) {
+            const payload = {
+              temperature: savedDoc.temperature,
+              humidity: savedDoc.humidity,
+              light: savedDoc.light,
+              createdAt: savedDoc.createdAt,
+              _id: savedDoc._id
+            };
+            
+            global.io.emit('newSensorData', payload);
+            console.log(`[Socket.IO] Emitted newSensorData:`, payload);
+          }
+        }).catch(err => {
+          console.error('Lỗi lưu database:', err);
+        });
       }
       else {
-        console.log("Lỗi lưu database: ");
+        console.log("Dữ liệu sensor không đầy đủ");
       }
     }
     catch (e){
-      console.log("Lỗi ");
+      console.log("Lỗi parse JSON:", e);
     }
     return;
-
-    
   }
 
   console.log(`[MQTT] ${topic} <= ${text}`);

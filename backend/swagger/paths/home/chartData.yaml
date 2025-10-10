@@ -1,0 +1,181 @@
+/api/chart:
+  get:
+    tags:
+      - Home - Dashboard
+    summary: Lấy dữ liệu cho biểu đồ
+    description: |
+      **Mô tả:**
+      - Lấy 10 bản ghi mới nhất từ database
+      - Sắp xếp theo `createdAt` giảm dần (mới → cũ)
+      - Dùng để vẽ line chart
+      
+      **Use case:**
+      - Biểu đồ nhiệt độ theo thời gian
+      - Biểu đồ độ ẩm theo thời gian
+      - Biểu đồ ánh sáng theo thời gian
+      - Multi-line chart (3 đường: temp, humidity, light)
+      
+      **Thư viện biểu đồ được hỗ trợ:**
+      - Chart.js
+      - Recharts (React)
+      - ApexCharts
+      - D3.js
+      - Highcharts
+      
+      **Lưu ý:**
+      - Giới hạn 10 bản ghi để tránh quá tải UI
+      - Dữ liệu đã sắp xếp sẵn theo thời gian
+      - Frontend cần reverse array nếu muốn hiển thị cũ → mới
+
+    responses:
+      '200':
+        description: Lấy dữ liệu thành công
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DataSensor'
+              maxItems: 10
+              minItems: 0
+            examples:
+              chart10Records:
+                summary: 10 bản ghi mới nhất
+                value:
+                  - _id: "671a2b3c4d5e6f7890123456"
+                    temperature: 28.5
+                    humidity: 68.0
+                    light: 320
+                    createdAt: "2025-10-07T10:15:30.456Z"
+                  - _id: "671a2b3c4d5e6f7890123457"
+                    temperature: 28.2
+                    humidity: 69.0
+                    light: 315
+                    createdAt: "2025-10-07T10:13:30.123Z"
+                  - _id: "671a2b3c4d5e6f7890123458"
+                    temperature: 28.0
+                    humidity: 70.0
+                    light: 310
+                    createdAt: "2025-10-07T10:11:30.789Z"
+                  - _id: "671a2b3c4d5e6f7890123459"
+                    temperature: 27.8
+                    humidity: 71.0
+                    light: 305
+                    createdAt: "2025-10-07T10:09:30.456Z"
+                  - _id: "671a2b3c4d5e6f789012345a"
+                    temperature: 27.5
+                    humidity: 72.0
+                    light: 300
+                    createdAt: "2025-10-07T10:07:30.123Z"
+                  - _id: "671a2b3c4d5e6f789012345b"
+                    temperature: 27.3
+                    humidity: 73.0
+                    light: 295
+                    createdAt: "2025-10-07T10:05:30.789Z"
+                  - _id: "671a2b3c4d5e6f789012345c"
+                    temperature: 27.0
+                    humidity: 74.0
+                    light: 290
+                    createdAt: "2025-10-07T10:03:30.456Z"
+                  - _id: "671a2b3c4d5e6f789012345d"
+                    temperature: 26.8
+                    humidity: 75.0
+                    light: 285
+                    createdAt: "2025-10-07T10:01:30.123Z"
+                  - _id: "671a2b3c4d5e6f789012345e"
+                    temperature: 26.5
+                    humidity: 76.0
+                    light: 280
+                    createdAt: "2025-10-07T09:59:30.789Z"
+                  - _id: "671a2b3c4d5e6f789012345f"
+                    temperature: 26.2
+                    humidity: 77.0
+                    light: 275
+                    createdAt: "2025-10-07T09:57:30.456Z"
+              
+              chartRising:
+                summary: Xu hướng tăng (nhiệt độ)
+                value:
+                  - temperature: 30.0
+                    humidity: 65.0
+                    light: 400
+                    createdAt: "2025-10-07T10:15:00Z"
+                  - temperature: 29.5
+                    humidity: 66.0
+                    light: 390
+                    createdAt: "2025-10-07T10:13:00Z"
+                  - temperature: 29.0
+                    humidity: 67.0
+                    light: 380
+                    createdAt: "2025-10-07T10:11:00Z"
+                  - temperature: 28.5
+                    humidity: 68.0
+                    light: 370
+                    createdAt: "2025-10-07T10:09:00Z"
+                  - temperature: 28.0
+                    humidity: 69.0
+                    light: 360
+                    createdAt: "2025-10-07T10:07:00Z"
+              
+              chartFalling:
+                summary: Xu hướng giảm (nhiệt độ)
+                value:
+                  - temperature: 25.0
+                    humidity: 75.0
+                    light: 300
+                    createdAt: "2025-10-07T10:15:00Z"
+                  - temperature: 25.5
+                    humidity: 74.0
+                    light: 310
+                    createdAt: "2025-10-07T10:13:00Z"
+                  - temperature: 26.0
+                    humidity: 73.0
+                    light: 320
+                    createdAt: "2025-10-07T10:11:00Z"
+                  - temperature: 26.5
+                    humidity: 72.0
+                    light: 330
+                    createdAt: "2025-10-07T10:09:00Z"
+                  - temperature: 27.0
+                    humidity: 71.0
+                    light: 340
+                    createdAt: "2025-10-07T10:07:00Z"
+              
+              chartLessThan10:
+                summary: Ít hơn 10 bản ghi (database mới)
+                value:
+                  - temperature: 28.5
+                    humidity: 68.0
+                    light: 320
+                    createdAt: "2025-10-07T10:15:30Z"
+                  - temperature: 28.0
+                    humidity: 70.0
+                    light: 310
+                    createdAt: "2025-10-07T10:13:30Z"
+                  - temperature: 27.5
+                    humidity: 72.0
+                    light: 300
+                    createdAt: "2025-10-07T10:11:30Z"
+              
+              chartEmpty:
+                summary: Database rỗng
+                value: []
+      
+      '500':
+        description: Lỗi server
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            examples:
+              databaseError:
+                summary: Lỗi kết nối database
+                value:
+                  error: "Internal server error"
+                  message: "MongoNetworkError: failed to connect to server"
+              
+              queryError:
+                summary: Lỗi truy vấn
+                value:
+                  error: "Internal server error"
+                  message: "Query execution failed"

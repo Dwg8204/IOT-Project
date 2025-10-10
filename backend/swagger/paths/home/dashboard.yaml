@@ -1,0 +1,49 @@
+/api:
+  get:
+    tags:
+      - Home - Dashboard
+    summary: Trang chủ Dashboard
+    description: |
+      **Mô tả:**
+      - Trả về file HTML của dashboard
+      - Giao diện chính của ứng dụng IoT
+      - Hiển thị dữ liệu realtime qua Socket.IO
+      
+      **Lưu ý:**
+      - API này trả về **HTML**, không phải JSON
+      - **KHÔNG THÍCH HỢP** để test trên Swagger UI
+      - Truy cập trực tiếp: `http://localhost:3000/api/home`
+      
+      **Tính năng dashboard:**
+      - Hiển thị nhiệt độ, độ ẩm, ánh sáng realtime
+      - Điều khiển thiết bị (fan, air, light)
+      - Biểu đồ lịch sử dữ liệu
+      - Bảng lịch sử điều khiển
+
+    responses:
+      '200':
+        description: Trả về file HTML thành công
+        content:
+          text/html:
+            schema:
+              type: string
+              example: "<!DOCTYPE html><html><head><title>IoT Dashboard</title></head><body>...</body></html>"
+      
+      '500':
+        description: Lỗi server - Không tìm thấy file HTML
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            examples:
+              fileNotFound:
+                summary: File HTML không tồn tại
+                value:
+                  error: "Internal server error"
+                  message: "Cannot find index.html"
+              
+              pathError:
+                summary: Lỗi đường dẫn file
+                value:
+                  error: "Internal server error"
+                  message: "ENOENT: no such file or directory"

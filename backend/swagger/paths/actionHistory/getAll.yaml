@@ -1,0 +1,407 @@
+/api/action-history:
+  get:
+    tags:
+      - Action History
+    summary: Quản lý lịch sử điều khiển (All-in-One)
+    description: |
+      **Endpoint đa chức năng hỗ trợ:**
+      
+      ### Lấy tất cả
+      ```
+      GET /api/action-history?page=1&limit=10
+      ```
+      
+      ### Lọc theo thiết bị
+      ```
+      GET /api/action-history?device=light&page=1&limit=10
+      ```
+      
+      ### Lọc theo hành động
+      ```
+      GET /api/action-history?action=on&page=1&limit=10
+      ```
+      
+      ### Lọc theo trạng thái
+      ```
+      GET /api/action-history?status=ok&page=1&limit=10
+      ```
+      
+      ### Tìm kiếm theo thời gian
+      ```
+      GET /api/action-history?keyword=7/10/2025&page=1&limit=10
+      ```
+      
+      ### Sắp xếp
+      ```
+      GET /api/action-history?sortValue=-1&page=1&limit=10
+      ```
+      
+      ### Kết hợp tất cả
+      ```
+      GET /api/action-history?device=light&action=on&keyword=7/10/2025&sortValue=-1&page=1&limit=10
+      ```
+      
+      ---
+      
+      ## ĐỊNH DẠNG THỜI GIAN
+      
+      Khi sử dụng `keyword`, hỗ trợ các format:
+      - `DD/MM/YYYY` - VD: `7/10/2025`
+      - `HH:MM:SS DD/MM/YYYY` - VD: `10:30:45 7/10/2025`
+      - `HH:MM DD/MM/YYYY` - VD: `10:30 7/10/2025`
+      - `YYYY-MM-DD` - VD: `2025-10-07`
+      - `YYYY-MM-DDTHH:MM:SS.sssZ` - VD: `2025-10-07T10:30:45.123Z`
+    
+    parameters:
+      # ==================== FILTER PARAMETERS ====================
+      - name: device
+        in: query
+        description: |
+          Lọc theo thiết bị (tùy chọn)
+          - `fan` - Quạt
+          - `air` - Điều hòa
+          - `light` - Đèn
+        required: false
+        schema:
+          type: string
+          enum: [fan, air, light]
+        examples:
+          fan:
+            summary: Lọc lịch sử quạt
+            value: fan
+          air:
+            summary: Lọc lịch sử điều hòa
+            value: air
+          light:
+            summary: Lọc lịch sử đèn
+            value: light
+      
+      - name: action
+        in: query
+        description: |
+          Lọc theo hành động (tùy chọn)
+          - `on` - Bật
+          - `off` - Tắt
+        required: false
+        schema:
+          type: string
+          enum: [on, off]
+        examples:
+          on:
+            summary: Lọc các lần bật
+            value: on
+          off:
+            summary: Lọc các lần tắt
+            value: off
+      
+      - name: status
+        in: query
+        description: |
+          Lọc theo trạng thái (tùy chọn)
+          - `ok` - Thành công
+          - `error` - Lỗi
+          - `pending` - Đang chờ
+        required: false
+        schema:
+          type: string
+          enum: [ok, error, pending]
+        examples:
+          ok:
+            summary: Lọc thành công
+            value: ok
+          error:
+            summary: Lọc lỗi
+            value: error
+          pending:
+            summary: Lọc đang chờ
+            value: pending
+      
+      # ==================== SEARCH PARAMETERS ====================
+      - name: keyword
+        in: query
+        description: |
+          Tìm kiếm theo thời gian hoặc text (tùy chọn)
+          
+          **Tìm theo thời gian:**
+          - Nhập format thời gian → Tìm trong `createAt`
+          
+          **Tìm theo text:**
+          - Nhập text → Tìm trong `device`, `action`, `status`, `message`
+          
+          **Ví dụ:**
+          - `7/10/2025` - Tìm tất cả trong ngày
+          - `10:30:45 7/10/2025` - Tìm chính xác đến giây
+          - `light` - Tìm text "light"
+          - `error` - Tìm text "error"
+        required: false
+        schema:
+          type: string
+        examples:
+          timeFullDay:
+            summary: Tìm cả ngày 7/10/2025
+            value: "7/10/2025"
+          timeExact:
+            summary: Tìm chính xác 10:30:45
+            value: "10:30:45 7/10/2025"
+          timeISO:
+            summary: Tìm theo ISO format
+            value: "2025-10-07"
+          textDevice:
+            summary: Tìm text "light"
+            value: "light"
+          textStatus:
+            summary: Tìm text "error"
+            value: "error"
+      
+      # ==================== SORT PARAMETERS ====================
+      - name: sortValue
+        in: query
+        description: |
+          Thứ tự sắp xếp theo `createAt` (tùy chọn)
+          
+          - `1` = Tăng dần - Cũ nhất trước (ASC) ↑
+          - `-1` = Giảm dần - Mới nhất trước (DESC) ↓
+          
+          **Mặc định:** `-1` (mới nhất trước)
+        required: false
+        schema:
+          type: integer
+          enum: [1, -1]
+          default: -1
+        examples:
+          newest:
+            summary: Mới nhất trước (mặc định)
+            value: -1
+          oldest:
+            summary: Cũ nhất trước
+            value: 1
+      
+      # ==================== PAGINATION PARAMETERS ====================
+      - name: page
+        in: query
+        description: Số trang (bắt đầu từ 1)
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+          example: 1
+      
+      - name: limit
+        in: query
+        description: Số bản ghi mỗi trang (max 1000)
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 10
+          example: 10
+
+    responses:
+      '200':
+        description: Lấy dữ liệu thành công
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionHistoryList'
+            examples:
+              getAllData:
+                summary: Lấy tất cả (không filter)
+                value:
+                  data:
+                    - _id: "671a2b3c4d5e6f7890abcdef"
+                      device: "light"
+                      action: "on"
+                      status: "ok"
+                      message: "Light turned on successfully"
+                      createAt: "2025-10-07T10:16:25.789Z"
+                    - _id: "671a2b3c4d5e6f7890abcdeg"
+                      device: "fan"
+                      action: "off"
+                      status: "ok"
+                      message: "Fan turned off successfully"
+                      createAt: "2025-10-07T10:15:20.456Z"
+                    - _id: "671a2b3c4d5e6f7890abcdeh"
+                      device: "air"
+                      action: "on"
+                      status: "ok"
+                      message: "Air conditioner turned on"
+                      createAt: "2025-10-07T10:14:15.123Z"
+                  pagination:
+                    totalItems: 234
+                    currentPage: 1
+                    totalPages: 24
+                    limitItem: 10
+              
+              filterByDeviceLight:
+                summary: Lọc thiết bị "light"
+                value:
+                  data:
+                    - device: "light"
+                      action: "on"
+                      status: "ok"
+                      message: "Light turned on successfully"
+                      createAt: "2025-10-07T10:16:25Z"
+                    - device: "light"
+                      action: "off"
+                      status: "ok"
+                      message: "Light turned off successfully"
+                      createAt: "2025-10-07T09:30:15Z"
+                  pagination:
+                    totalItems: 85
+                    currentPage: 1
+                    totalPages: 9
+                    limitItem: 10
+              
+              filterByActionOn:
+                summary: Lọc hành động "on"
+                value:
+                  data:
+                    - device: "light"
+                      action: "on"
+                      status: "ok"
+                      createAt: "2025-10-07T10:16:25Z"
+                    - device: "fan"
+                      action: "on"
+                      status: "ok"
+                      createAt: "2025-10-07T10:10:00Z"
+                    - device: "air"
+                      action: "on"
+                      status: "ok"
+                      createAt: "2025-10-07T09:45:30Z"
+                  pagination:
+                    totalItems: 120
+                    currentPage: 1
+                    totalPages: 12
+                    limitItem: 10
+              
+              filterByStatusError:
+                summary: Lọc trạng thái "error"
+                value:
+                  data:
+                    - device: "fan"
+                      action: "on"
+                      status: "error"
+                      message: "MQTT timeout"
+                      createAt: "2025-10-07T08:30:00Z"
+                    - device: "light"
+                      action: "off"
+                      status: "error"
+                      message: "Device not responding"
+                      createAt: "2025-10-07T07:15:00Z"
+                  pagination:
+                    totalItems: 12
+                    currentPage: 1
+                    totalPages: 2
+                    limitItem: 10
+              
+              searchTimeFullDay:
+                summary: Tìm cả ngày 7/10/2025
+                value:
+                  data:
+                    - device: "light"
+                      action: "on"
+                      createAt: "2025-10-07T10:16:25Z"
+                    - device: "fan"
+                      action: "off"
+                      createAt: "2025-10-07T09:45:00Z"
+                    - device: "air"
+                      action: "on"
+                      createAt: "2025-10-07T08:30:15Z"
+                  pagination:
+                    totalItems: 32
+                    currentPage: 1
+                    totalPages: 4
+                    limitItem: 10
+              
+              searchTimeExact:
+                summary: Tìm chính xác 10:16:25 ngày 7/10
+                value:
+                  data:
+                    - device: "light"
+                      action: "on"
+                      status: "ok"
+                      createAt: "2025-10-07T10:16:25.789Z"
+                  pagination:
+                    totalItems: 1
+                    currentPage: 1
+                    totalPages: 1
+                    limitItem: 10
+              
+              searchTextLight:
+                summary: Tìm text "light"
+                value:
+                  data:
+                    - device: "light"
+                      action: "on"
+                      message: "Light turned on successfully"
+                      createAt: "2025-10-07T10:16:25Z"
+                    - device: "light"
+                      action: "off"
+                      message: "Light turned off successfully"
+                      createAt: "2025-10-07T09:30:15Z"
+                  pagination:
+                    totalItems: 85
+                    currentPage: 1
+                    totalPages: 9
+                    limitItem: 10
+              
+              combinedFilter:
+                summary: Device=light + Action=on + sortValue=-1
+                value:
+                  data:
+                    - device: "light"
+                      action: "on"
+                      status: "ok"
+                      message: "Light turned on successfully"
+                      createAt: "2025-10-07T10:16:25Z"
+                    - device: "light"
+                      action: "on"
+                      status: "ok"
+                      message: "Light turned on successfully"
+                      createAt: "2025-10-07T08:45:30Z"
+                  pagination:
+                    totalItems: 42
+                    currentPage: 1
+                    totalPages: 5
+                    limitItem: 10
+              
+              sortOldest:
+                summary: Sắp xếp cũ nhất trước
+                value:
+                  data:
+                    - device: "fan"
+                      action: "on"
+                      createAt: "2025-10-06T08:00:00Z"
+                    - device: "light"
+                      action: "off"
+                      createAt: "2025-10-06T09:15:00Z"
+                    - device: "air"
+                      action: "on"
+                      createAt: "2025-10-06T10:30:00Z"
+                  pagination:
+                    totalItems: 234
+                    currentPage: 1
+                    totalPages: 24
+                    limitItem: 10
+              
+              noResults:
+                summary: Không tìm thấy kết quả
+                value:
+                  data: []
+                  pagination:
+                    totalItems: 0
+                    currentPage: 1
+                    totalPages: 0
+                    limitItem: 10
+      
+      '500':
+        description: Lỗi server
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            example:
+              error: "Internal server error"
+              message: "Database connection failed"

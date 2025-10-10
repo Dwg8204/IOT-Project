@@ -20,7 +20,7 @@
 }
 
 /* Select + Input */
-#deviceFilter,
+#sortKey,
 #sortOrder,
 #limitInput {
   max-width: 120px;
@@ -110,7 +110,7 @@
 }
 
 /* Apply button highlight */
-#applyButton {
+/* #applyButton {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   border: none;
   color: #fff;
@@ -124,8 +124,8 @@
 }
 
 /* Filter selection highlight */
-.form-select:focus,
+/* .form-select:focus,
 .form-control:focus {
   border-color: #48bb78;
   box-shadow: 0 0 0 0.2rem rgba(72, 187, 120, 0.25);
-}
+} */ */

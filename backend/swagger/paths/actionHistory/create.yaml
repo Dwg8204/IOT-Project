@@ -1,0 +1,211 @@
+/api/action-history/create:
+  post:
+    tags:
+      - Action History
+    summary: Điều khiển thiết bị
+    description: |
+      **Mô tả:**
+      - Gửi lệnh bật/tắt thiết bị qua MQTT
+      - Tự động lưu vào lịch sử điều khiển
+      - Timeout 2s nếu thiết bị không phản hồi
+      
+      **Các thiết bị:**
+      - `fan` - Quạt (LED đỏ, GPIO 19)
+      - `air` - Điều hòa (LED xanh, GPIO 21)
+      - `light` - Đèn (LED vàng, GPIO 18)
+      
+      **Flow hoạt động:**
+      1. API gửi lệnh qua MQTT topic `deviceled`
+      2. ESP32 nhận lệnh và thực thi
+      3. ESP32 gửi response về topic `responseled`
+      4. API nhận response và lưu vào database
+      
+      **Use case:**
+      - Bật/tắt thiết bị từ dashboard web
+      - Điều khiển từ mobile app
+      - Tự động điều khiển dựa trên ngưỡng cảm biến
+      - Lập lịch bật/tắt thiết bị
+    
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - device
+              - action
+            properties:
+              device:
+                type: string
+                enum: [fan, air, light]
+                description: |
+                  Tên thiết bị cần điều khiển
+                  - `fan` - Quạt
+                  - `air` - Điều hòa
+                  - `light` - Đèn
+              action:
+                type: string
+                enum: [on, off]
+                description: |
+                  Hành động
+                  - `on` - Bật thiết bị
+                  - `off` - Tắt thiết bị
+          examples:
+            turnOnLight:
+              summary: Bật đèn
+              value:
+                device: light
+                action: on
+            turnOffLight:
+              summary: Tắt đèn
+              value:
+                device: light
+                action: off
+            turnOnFan:
+              summary: Bật quạt
+              value:
+                device: fan
+                action: on
+            turnOffFan:
+              summary: Tắt quạt
+              value:
+                device: fan
+                action: off
+            turnOnAir:
+              summary: Bật điều hòa
+              value:
+                device: air
+                action: on
+            turnOffAir:
+              summary: Tắt điều hòa
+              value:
+                device: air
+                action: off
+
+    responses:
+      '200':
+        description: Điều khiển thành công
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  description: Thông báo kết quả
+                data:
+                  $ref: '#/components/schemas/ActionHistory'
+            examples:
+              lightOn:
+                summary: Bật đèn thành công
+                value:
+                  message: "Hành động đã được thực hiện"
+                  data:
+                    _id: "671a2b3c4d5e6f7890abcdef"
+                    device: "light"
+                    action: "on"
+                    status: "ok"
+                    message: "Light turned on successfully"
+                    createAt: "2025-10-07T10:16:25.789Z"
+              
+              fanOff:
+                summary: Tắt quạt thành công
+                value:
+                  message: "Hành động đã được thực hiện"
+                  data:
+                    _id: "671a2b3c4d5e6f7890abcdeg"
+                    device: "fan"
+                    action: "off"
+                    status: "ok"
+                    message: "Fan turned off successfully"
+                    createAt: "2025-10-07T10:17:30.123Z"
+              
+              airOn:
+                summary: Bật điều hòa thành công
+                value:
+                  message: "Hành động đã được thực hiện"
+                  data:
+                    device: "air"
+                    action: "on"
+                    status: "ok"
+                    message: "Air conditioner turned on successfully"
+                    createAt: "2025-10-07T10:18:45.456Z"
+      
+      '400':
+        description: Thiếu thông tin hoặc không hợp lệ
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            examples:
+              missingDevice:
+                summary: Thiếu trường device
+                value:
+                  error: "Validation Error"
+                  message: "Thiếu trường 'device'"
+                  hint: "Vui lòng cung cấp tên thiết bị"
+              
+              missingAction:
+                summary: Thiếu trường action
+                value:
+                  error: "Validation Error"
+                  message: "Thiếu trường 'action'"
+                  hint: "Vui lòng cung cấp hành động (on/off)"
+              
+              invalidDevice:
+                summary: Device không hợp lệ
+                value:
+                  error: "Validation Error"
+                  message: "Device phải là: fan, air, hoặc light"
+                  hint: "Các giá trị hợp lệ: fan, air, light"
+              
+              invalidAction:
+                summary: Action không hợp lệ
+                value:
+                  error: "Validation Error"
+                  message: "Action phải là: on hoặc off"
+                  hint: "Các giá trị hợp lệ: on, off"
+              
+              emptyBody:
+                summary: Body rỗng
+                value:
+                  error: "Validation Error"
+                  message: "Request body không được để trống"
+      
+      '500':
+        description: Lỗi server hoặc thiết bị không phản hồi
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            examples:
+              mqttError:
+                summary: Lỗi gửi lệnh MQTT
+                value:
+                  error: "MQTT Error"
+                  message: "Lỗi khi gửi lệnh qua MQTT"
+                  details: "Connection refused - broker not available"
+              
+              timeout:
+                summary: Timeout - Thiết bị không phản hồi
+                value:
+                  error: "Timeout Error"
+                  message: "Timeout: No response from device"
+                  hint: "Kiểm tra kết nối ESP32 hoặc MQTT broker"
+              
+              deviceError:
+                summary: Thiết bị phản hồi lỗi
+                value:
+                  error: "Device Error"
+                  message: "Device phản hồi lỗi hoặc không hợp lệ"
+                  response:
+                    status: "error"
+                    message: "GPIO initialization failed"
+              
+              databaseError:
+                summary: Lỗi lưu database
+                value:
+                  error: "Database Error"
+                  message: "Không thể lưu lịch sử điều khiển"
+                  details: "MongoDB connection timeout"

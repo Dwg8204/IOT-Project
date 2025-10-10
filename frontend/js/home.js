@@ -1,16 +1,92 @@
+// ============= SOCKET.IO SETUP =============
+let socket;
+let isConnected = false;
+
+function initSocketIO() {
+  // Kết nối Socket.IO
+  socket = io('http://localhost:3000', {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 10
+  });
+
+  // Connection events
+  socket.on('connect', () => {
+    console.log('✅ Socket.IO connected, ID:', socket.id);
+    isConnected = true;
+    updateConnectionStatus(true);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('❌ Socket.IO disconnected');
+    isConnected = false;
+    updateConnectionStatus(false);
+  });
+
+  socket.on('connect_error', (error) => {
+    console.error('🔴 Socket.IO connection error:', error);
+    updateConnectionStatus(false);
+  });
+
+  socket.on('welcome', (data) => {
+    console.log('📩 Welcome message:', data.message);
+  });
+
+  // 🔹 QUAN TRỌNG: Lắng nghe sensor data realtime
+  socket.on('newSensorData', (data) => {
+    console.log('📡 Realtime sensor data:', data);
+    
+    // Cập nhật cards ngay lập tức
+    updateCards(data);
+    
+    // Thêm vào chart
+    pushPoint(data);
+  });
+
+  // 🔹 Lắng nghe device state updates
+  socket.on('deviceStateUpdate', (data) => {
+    console.log('📡 Device state update:', data);
+    
+    // Cập nhật checkbox UI (không trigger event)
+    if (data.device === 'light') {
+      document.getElementById('ledSwitch').checked = (data.action === 'on');
+    } else if (data.device === 'fan') {
+      document.getElementById('fanSwitch').checked = (data.action === 'on');
+    } else if (data.device === 'air') {
+      document.getElementById('acSwitch').checked = (data.action === 'on');
+    }
+  });
+}
+
+// Update connection status badge
+function updateConnectionStatus(connected) {
+  const badge = document.getElementById('connectionStatus');
+  if (!badge) return;
+  
+  if (connected) {
+    badge.className = 'badge bg-success';
+    badge.innerHTML = '<i class="bi bi-circle-fill"></i> Đã kết nối Realtime';
+  } else {
+    badge.className = 'badge bg-danger';
+    badge.innerHTML = '<i class="bi bi-circle-fill"></i> Mất kết nối';
+  }
+}
+
+// ============= CHART SETUP =============
 const ctx = document.getElementById('sensorChart').getContext('2d');
 const labels = [];
 const tempData = [];
 const humData = [];
 const lightData = [];
 
-// ============= THÊM MỚI: ALERT SYSTEM =============
+// ============= ALERT SYSTEM =============
 
 // Alert thresholds
 const THRESHOLDS = {
-  temperature: { max: 25, type: 'max' },
-  humidity: { min: 60, type: 'min' },
-  light: { max: 2000, type: 'max' }
+  temperature: { max: 40, type: 'max' },
+  humidity: { min: 40, type: 'min' },
+  light: { max: 3000, type: 'max' }
 };
 
 // Alert state tracking
@@ -69,7 +145,6 @@ function createAlert(type, value, threshold, isExceeded) {
   const container = document.getElementById('alertContainer');
   container.insertAdjacentHTML('afterbegin', alertHTML);
 
-  // Animate in
   setTimeout(() => {
     const alertElement = document.getElementById(alertId);
     if (alertElement) {
@@ -77,16 +152,13 @@ function createAlert(type, value, threshold, isExceeded) {
     }
   }, 100);
 
-  // Auto close after 10 seconds
   setTimeout(() => {
     closeAlert(alertId);
   }, 10000);
 
-  // Play sound
   playAlertSound();
 }
 
-// Close alert
 function closeAlert(alertId) {
   const alert = document.getElementById(alertId);
   if (alert) {
@@ -97,7 +169,6 @@ function closeAlert(alertId) {
   }
 }
 
-// Play alert sound
 function playAlertSound() {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -120,9 +191,7 @@ function playAlertSound() {
   }
 }
 
-// Update status indicators
 function updateStatusIndicators(temp, hum, light) {
-  // Temperature status
   const tempStatus = document.getElementById('tempStatus');
   const tempCard = document.getElementById('tempCard');
   if (tempStatus && tempCard) {
@@ -138,7 +207,6 @@ function updateStatusIndicators(temp, hum, light) {
     }
   }
 
-  // Humidity status
   const humStatus = document.getElementById('humStatus');
   const humCard = document.getElementById('humCard');
   if (humStatus && humCard) {
@@ -154,7 +222,6 @@ function updateStatusIndicators(temp, hum, light) {
     }
   }
 
-  // Light status
   const lightStatus = document.getElementById('lightStatus');
   const lightCard = document.getElementById('lightCard');
   if (lightStatus && lightCard) {
@@ -171,14 +238,12 @@ function updateStatusIndicators(temp, hum, light) {
   }
 }
 
-// Check for alerts
 function checkAlerts(data) {
   if (!data) return;
 
   const { temperature, humidity, light } = data;
   const now = Date.now();
 
-  // Check temperature
   if (temperature > THRESHOLDS.temperature.max) {
     const alertKey = `temp-${Math.floor(temperature)}`;
     if (!alertHistory.has(alertKey) || (now - (lastAlertTime.temperature || 0) > 60000)) {
@@ -188,7 +253,6 @@ function checkAlerts(data) {
     }
   }
 
-  // Check humidity
   if (humidity < THRESHOLDS.humidity.min) {
     const alertKey = `hum-${Math.floor(humidity)}`;
     if (!alertHistory.has(alertKey) || (now - (lastAlertTime.humidity || 0) > 60000)) {
@@ -198,7 +262,6 @@ function checkAlerts(data) {
     }
   }
 
-  // Check light
   if (light > THRESHOLDS.light.max) {
     const alertKey = `light-${Math.floor(light/100)}`;
     if (!alertHistory.has(alertKey) || (now - (lastAlertTime.light || 0) > 60000)) {
@@ -209,7 +272,7 @@ function checkAlerts(data) {
   }
 }
 
-// ============= KẾT THÚC PHẦN ALERT SYSTEM =============
+// ============= CHART FUNCTIONS =============
 
 function pushPoint(d) {
   if (!d) return;
@@ -258,7 +321,6 @@ function updateCards(d) {
   document.getElementById('humVal').textContent = hum;
   document.getElementById('lightVal').textContent = light;
 
-  // THÊM MỚI: Check alerts và update status khi có dữ liệu hợp lệ
   if (temp !== '--' && hum !== '--' && light !== '--') {
     checkAlerts({ temperature: temp, humidity: hum, light: light });
     updateStatusIndicators(temp, hum, light);
@@ -306,22 +368,23 @@ function bindToggle(id, device) {
   });
 }
 
-async function loadLatest() {
-  try {
-    const res = await fetch('http://localhost:3000/api/data');
-    if (!res.ok) return;
-    const latest = await res.json();
-    if (latest) {
-      updateCards(latest);
-      if (tempData.length === 0 ||
-        latest.temperature !== tempData[tempData.length - 1] ||
-        latest.humidity !== humData[humData.length - 1] ||
-        latest.light !== lightData[lightData.length - 1]) {
-        pushPoint(latest);
-      }
-    }
-  } catch (e) { console.warn(e); }
-}
+// 🔹 SỬA: Không cần polling nữa vì đã có realtime
+// async function loadLatest() {
+//   try {
+//     const res = await fetch('http://localhost:3000/api/data');
+//     if (!res.ok) return;
+//     const latest = await res.json();
+//     if (latest) {
+//       updateCards(latest);
+//       if (tempData.length === 0 ||
+//         latest.temperature !== tempData[tempData.length - 1] ||
+//         latest.humidity !== humData[humData.length - 1] ||
+//         latest.light !== lightData[lightData.length - 1]) {
+//         pushPoint(latest);
+//       }
+//     }
+//   } catch (e) { console.warn(e); }
+// }
 
 async function loadDeviceStates() {
   try {
@@ -335,13 +398,29 @@ async function loadDeviceStates() {
 }
 
 async function init() {
+  // 🔹 THÊM: Khởi tạo Socket.IO
+  initSocketIO();
+  
   await loadDeviceStates();
   bindToggle('ledSwitch', 'light');
   bindToggle('fanSwitch', 'fan');
   bindToggle('acSwitch', 'air');
   await loadChartOnce();
-  await loadLatest();
+  
+  // 🔹 SỬA: Load latest 1 lần đầu để có data ngay
+  try {
+    const res = await fetch('http://localhost:3000/api/data');
+    if (res.ok) {
+      const latest = await res.json();
+      if (latest) {
+        updateCards(latest);
+        pushPoint(latest);
+      }
+    }
+  } catch (e) { console.warn(e); }
 }
 
 init();
-setInterval(loadLatest, 5000);
+
+// 🔹 XÓA: Không cần polling interval nữa
+// setInterval(loadLatest, 5000);

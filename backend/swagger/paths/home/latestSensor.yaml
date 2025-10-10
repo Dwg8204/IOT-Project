@@ -1,0 +1,94 @@
+/api/data:
+  get:
+    tags:
+      - Home - Dashboard
+    summary: Lấy dữ liệu cảm biến MỚI NHẤT
+    description: |
+      **Mô tả:**
+      - Lấy 1 bản ghi cảm biến mới nhất từ database
+      - Sắp xếp theo `createdAt` giảm dần
+      - Dùng để hiển thị trên dashboard
+      
+      **Use case:**
+      - Widget hiển thị nhiệt độ/độ ẩm/ánh sáng hiện tại
+      - Mobile app homescreen
+      - Status card trên dashboard
+      - Polling mỗi 2-5 giây để cập nhật UI
+      
+      **Lưu ý:**
+      - Nên dùng **Socket.IO** thay vì polling để tiết kiệm tài nguyên
+      - API này sẽ trả về `null` nếu database rỗng
+
+    responses:
+      '200':
+        description: Lấy dữ liệu thành công
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSensor'
+            examples:
+              latestNormal:
+                summary: Dữ liệu mới nhất (bình thường)
+                value:
+                  _id: "671a2b3c4d5e6f7890123456"
+                  temperature: 28.5
+                  humidity: 68.0
+                  light: 320
+                  createdAt: "2025-10-07T10:15:30.456Z"
+              
+              latestHot:
+                summary: Trời nóng
+                value:
+                  _id: "671a2b3c4d5e6f7890123457"
+                  temperature: 35.2
+                  humidity: 55.0
+                  light: 850
+                  createdAt: "2025-10-07T14:30:00.000Z"
+              
+              latestCold:
+                summary: Trời lạnh
+                value:
+                  _id: "671a2b3c4d5e6f7890123458"
+                  temperature: 18.5
+                  humidity: 80.0
+                  light: 150
+                  createdAt: "2025-10-07T06:00:00.000Z"
+              
+              latestDark:
+                summary: Tối (ánh sáng thấp)
+                value:
+                  temperature: 26.0
+                  humidity: 70.0
+                  light: 50
+                  createdAt: "2025-10-07T20:30:00.000Z"
+              
+              latestBright:
+                summary: Sáng (ánh sáng cao)
+                value:
+                  temperature: 30.0
+                  humidity: 60.0
+                  light: 1200
+                  createdAt: "2025-10-07T12:00:00.000Z"
+              
+              noData:
+                summary: Database rỗng
+                value: null
+      
+      '500':
+        description: Lỗi server
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Error'
+            examples:
+              databaseError:
+                summary: Lỗi kết nối database
+                value:
+                  error: "Internal server error"
+                  message: "MongoNetworkError: failed to connect to server"
+              
+              queryError:
+                summary: Lỗi truy vấn
+                value:
+                  error: "Internal server error"
+                  message: "Cast to ObjectId failed for value"
